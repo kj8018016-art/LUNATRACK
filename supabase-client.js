@@ -19,8 +19,8 @@
    below catches that case and falls back to demo mode instead.
    ========================================================================== */
 
-const SUPABASE_URL = '';       // e.g. 'https://abcdefghijk.supabase.co'
-const SUPABASE_ANON_KEY = '';  // e.g. 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+const SUPABASE_URL = 'https://awaocotntfaqywfatjur.supabase.co';       // e.g. 'https://abcdefghijk.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3YW9jb3RudGZhcXl3ZmF0anVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwNzA0MDIsImV4cCI6MjEwNDY0NjQwMn0.YBvIdcB87r6nUXgIeI7iso9SW5XF6YvsTnlZx3OByUk';  // e.g. 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
 
 const LunaSupabase = (() => {
   const urlLooksValid = /^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test((SUPABASE_URL || '').trim());
