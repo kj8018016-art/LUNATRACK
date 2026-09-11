@@ -692,6 +692,7 @@ body.app-body { background: var(--c-bg); transition: background var(--dur-mid) v
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: var(--sp-4);
 }
+#authGuardOverlay[hidden] { display: none; }
 #authGuardOverlay .luna-loader { width: 30px; height: 30px; }
 #authGuardOverlay p { font-size: var(--fs-sm); color: var(--c-ink-faint); }
 

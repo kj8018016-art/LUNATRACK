@@ -113,7 +113,7 @@ const LunaAuth = (() => {
 
     const guard = document.getElementById('authGuardOverlay');
     const escapeHatch = document.getElementById('authGuardEscape');
-    if (guard) guard.hidden = false;
+    if (guard) { guard.hidden = false; guard.style.display = 'flex'; }
 
     const escapeTimer = setTimeout(() => {
       if (escapeHatch) escapeHatch.hidden = false;
@@ -128,7 +128,7 @@ const LunaAuth = (() => {
       window.location.href = 'login.html';
       return false;
     }
-    if (guard) guard.hidden = true;
+    if (guard) { guard.hidden = true; guard.style.display = 'none'; }
     return true;
   }
 
