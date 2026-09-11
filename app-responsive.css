@@ -1,0 +1,43 @@
+/* ==========================================================================
+   LunaTrack App — app-responsive.css
+   Breakpoints: 1200 / 992 / 768 / 480
+   ========================================================================== */
+
+@media (max-width: 1200px) {
+  .app-shell { grid-template-columns: 216px 1fr; }
+  .stat-grid { grid-template-columns: repeat(2, 1fr); }
+  .dash-grid, .dash-grid-even { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 992px) {
+  .app-shell { display: block; }
+  .app-sidebar { display: none; }
+  .mobile-topbar { display: flex; }
+  .bottom-nav { display: block; }
+
+  .app-main { padding: var(--sp-5) var(--sp-5) calc(84px + var(--sp-6)); }
+  .app-topbar { display: none; } /* mobile-topbar replaces it */
+
+  .quick-actions { grid-template-columns: 1fr; }
+  .mini-stat-grid { grid-template-columns: repeat(2, 1fr); }
+
+  .cal-page-grid { grid-template-columns: 1fr; }
+  .settings-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  .stat-grid { grid-template-columns: repeat(2, 1fr); }
+  .cycle-card-stats { flex-wrap: wrap; gap: var(--sp-4); }
+  .cycle-card-stats .stat { flex: 1 1 40%; }
+  .history-row { flex-direction: column; align-items: flex-start; gap: var(--sp-2); }
+  .history-row svg { display: none; }
+}
+
+@media (max-width: 480px) {
+  .app-main { padding: var(--sp-4) var(--sp-4) calc(84px + var(--sp-5)); }
+  .stat-grid, .mini-stat-grid { grid-template-columns: repeat(2, 1fr); }
+  .app-card, .cycle-card { padding: var(--sp-5); }
+  .mood-row { gap: var(--sp-2); }
+  .mood-btn { min-width: 58px; padding: var(--sp-2) var(--sp-3); }
+  .notif-panel { position: fixed; top: 64px; right: var(--sp-3); left: var(--sp-3); width: auto; }
+}

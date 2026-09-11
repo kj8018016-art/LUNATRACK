@@ -1,0 +1,52 @@
+/* ==========================================================================
+   LunaTrack — Animations & Keyframes
+   ========================================================================== */
+
+@keyframes float-y {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes orb-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-22px, 18px) scale(1.04); }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg) translateX(-50%); }
+  to { transform: rotate(360deg) translateX(-50%); }
+}
+.orbit-1 { transform-origin: -50% 50%; }
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hero-copy > * {
+  animation: fade-in-up 900ms var(--ease-out) both;
+}
+.hero-copy .trust-line { animation-delay: 60ms; }
+.hero-copy h1 { animation-delay: 120ms; }
+.hero-copy p.lede { animation-delay: 240ms; }
+.hero-copy .hero-actions { animation-delay: 360ms; }
+
+.hero-visual { animation: fade-in-up 1100ms var(--ease-out) 260ms both; }
+
+@keyframes sparkle-pulse {
+  0%, 100% { opacity: 0.25; transform: scale(0.8); }
+  50% { opacity: 0.9; transform: scale(1.15); }
+}
+.sparkle { animation: sparkle-pulse 3.2s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-bg-orb, .dashboard-card, .chip-moon, .chip-calendar,
+  .orbit-1, .final-orbit-1, .sparkle {
+    animation: none !important;
+  }
+  .hero-copy > *, .hero-visual { animation: none !important; opacity: 1 !important; transform: none !important; }
+}

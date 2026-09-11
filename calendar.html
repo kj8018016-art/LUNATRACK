@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendar — LunaTrack</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="animations.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="dashboard.css">
+<link rel="stylesheet" href="app-responsive.css">
+</head>
+<body class="app-body" data-page="calendar" data-title="Calendar">
+
+<div id="authGuardOverlay" hidden>
+  <div class="luna-loader"></div>
+  <p>Loading your account&hellip;</p>
+  <a href="login.html" id="authGuardEscape" hidden style="font-size:13px;color:var(--c-plum);font-weight:600;">Taking longer than expected? Go to login &rarr;</a>
+</div>
+
+
+<a href="#appMain" class="skip-link">Skip to content</a>
+
+<div id="mobileTopbarRoot"></div>
+<div id="drawerRoot"></div>
+
+<div class="app-shell">
+  <div id="sidebarRoot"></div>
+
+  <main class="app-main" id="appMain">
+    <div class="app-main-inner">
+
+      <div class="app-topbar">
+        <div class="topbar-title">
+          <h1>Calendar</h1>
+          <p>Your cycle, day by day.</p>
+        </div>
+        <div class="topbar-actions" id="topbarActions"></div>
+      </div>
+
+      <div class="cal-page-grid">
+        <div class="app-card" data-reveal>
+          <div class="card-head">
+            <div class="cal-nav">
+              <button class="cal-nav-btn" id="calPrevBtn" aria-label="Previous month">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 6-6 6 6 6"/></svg>
+              </button>
+              <span class="cal-month-label" id="calMonthLabel">September 2026</span>
+              <button class="cal-nav-btn" id="calNextBtn" aria-label="Next month">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg>
+              </button>
+            </div>
+            <button class="btn btn-secondary" id="calTodayBtn" style="padding:0.5rem 1.1rem;font-size:var(--fs-xs)">Today</button>
+          </div>
+
+          <div class="full-cal-weekdays" id="fullCalWeekdays"></div>
+          <div class="full-cal-days" id="fullCalDays"></div>
+        </div>
+
+        <div class="app-card" data-reveal style="transition-delay:80ms">
+          <div class="card-head"><h2>Legend</h2></div>
+          <div class="cal-legend">
+            <div class="cal-legend-item"><span class="cal-legend-swatch" style="background:var(--c-burgundy)"></span>Period logged</div>
+            <div class="cal-legend-item"><span class="cal-legend-swatch" style="border:1.5px dashed var(--c-burgundy);background:transparent"></span>Estimated period</div>
+            <div class="cal-legend-item"><span class="cal-legend-swatch" style="background:var(--c-lavender)"></span>Estimated ovulation</div>
+            <div class="cal-legend-item"><span class="cal-legend-swatch" style="background:var(--c-lavender-soft)"></span>Fertile window</div>
+            <div class="cal-legend-item"><span class="cal-legend-swatch" style="box-shadow:0 0 0 1.5px var(--c-plum) inset;background:transparent"></span>Today</div>
+            <div class="cal-legend-item"><span class="cal-legend-swatch" style="background:var(--c-surface-sunken);position:relative"></span>Dot = entry logged</div>
+          </div>
+          <p style="margin-top:var(--sp-6);font-size:var(--fs-xs);color:var(--c-ink-faint);border-top:1px solid var(--c-border);padding-top:var(--sp-5)">
+            Tap any date to see what was logged, along with an estimated cycle day. Estimates are based on your logged history and aren't guaranteed.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<div id="bottomNavRoot"></div>
+
+<!-- Date Details modal -->
+<div id="modalRoot">
+  <div class="modal-backdrop" id="modalDateDetails">
+    <div class="modal-box">
+      <div class="modal-head">
+        <div>
+          <h3 id="ddModalDate">September 9</h3>
+          <div class="card-sub" id="ddModalCycleDay" style="margin-top:2px">Cycle day 14</div>
+        </div>
+        <button class="modal-close" data-close-modal aria-label="Close">✕</button>
+      </div>
+      <div class="date-detail-panel" style="margin-top:0;padding-top:0;border-top:none">
+        <div class="dd-row"><span>Period</span><span class="v" id="ddModalPeriod">Not logged</span></div>
+        <div class="dd-row"><span>Fertility</span><span class="v" id="ddModalFertility">Outside fertile window</span></div>
+        <div class="dd-row"><span>Symptoms</span><span class="v" id="ddModalSymptoms">None</span></div>
+        <div class="dd-row"><span>Mood</span><span class="v" id="ddModalMood">—</span></div>
+        <div class="dd-row" style="align-items:flex-start"><span>Notes</span><span class="v" id="ddModalNotes" style="text-align:right;max-width:220px">No notes for this day.</span></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary btn-block" data-close-modal>Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-stack" id="toastStack" aria-live="polite"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-client.js"></script>
+<script src="auth.js"></script>
+<script src="app.js"></script>
+<script src="calendar.js"></script>
+</body>
+</html>

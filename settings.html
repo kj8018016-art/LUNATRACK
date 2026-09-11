@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Settings — LunaTrack</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="animations.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="dashboard.css">
+<link rel="stylesheet" href="app-responsive.css">
+</head>
+<body class="app-body" data-page="settings" data-title="Settings">
+
+<div id="authGuardOverlay" hidden>
+  <div class="luna-loader"></div>
+  <p>Loading your account&hellip;</p>
+  <a href="login.html" id="authGuardEscape" hidden style="font-size:13px;color:var(--c-plum);font-weight:600;">Taking longer than expected? Go to login &rarr;</a>
+</div>
+
+
+<a href="#appMain" class="skip-link">Skip to content</a>
+
+<div id="mobileTopbarRoot"></div>
+<div id="drawerRoot"></div>
+
+<div class="app-shell">
+  <div id="sidebarRoot"></div>
+
+  <main class="app-main" id="appMain">
+    <div class="app-main-inner" style="max-width:760px">
+
+      <div class="app-topbar">
+        <div class="topbar-title">
+          <h1>Settings</h1>
+          <p>Manage your profile, preferences, and privacy.</p>
+        </div>
+        <div class="topbar-actions" id="topbarActions"></div>
+      </div>
+
+      <!-- Profile -->
+      <div class="app-card" data-reveal style="margin-bottom:var(--sp-6)">
+        <div class="card-head"><h2>Profile</h2><button class="btn btn-secondary" style="padding:0.5rem 1rem;font-size:var(--fs-xs)" id="logoutBtn">Log out</button></div>
+        <div style="display:flex;align-items:center;gap:var(--sp-4);margin-bottom:var(--sp-6)">
+          <span class="avatar" style="width:56px;height:56px;font-size:var(--fs-md)" id="profileAvatar">M</span>
+          <div>
+            <button class="btn btn-secondary" style="padding:0.5rem 1rem;font-size:var(--fs-xs)" id="changePhotoBtn">Change photo</button>
+          </div>
+        </div>
+        <div class="form-field">
+          <label for="profileName">Name</label>
+          <input type="text" id="profileName" value="Maya">
+        </div>
+        <div class="form-field">
+          <label for="profileEmail">Email</label>
+          <input type="email" id="profileEmail" value="maya@example.com">
+        </div>
+        <div class="form-field" style="margin-bottom:0">
+          <label for="profileDob">Date of birth</label>
+          <input type="text" id="profileDob" placeholder="MM / DD / YYYY">
+        </div>
+      </div>
+
+      <!-- Cycle setup -->
+      <div class="app-card" data-reveal style="margin-bottom:var(--sp-6);transition-delay:30ms">
+        <div class="card-head"><h2>Cycle setup</h2></div>
+        <div class="switch-row" style="border-bottom:none;padding-top:0">
+          <div><div class="lbl">Last period, cycle & period length</div><div class="sub" id="cycleSetupSummary">Loading…</div></div>
+          <button class="btn btn-secondary" style="padding:0.55rem 1.1rem;font-size:var(--fs-xs)" id="editCycleBtnSettings">Edit</button>
+        </div>
+        <div class="switch-row">
+          <div><div class="lbl">Reset cycle data</div><div class="sub">Clear your saved setup and go through it again</div></div>
+          <button class="btn btn-secondary" style="padding:0.55rem 1.1rem;font-size:var(--fs-xs);color:var(--c-burgundy);border-color:var(--c-burgundy)" data-open-modal="modalResetCycleConfirm">Reset</button>
+        </div>
+      </div>
+
+      <!-- Preferences -->
+      <div class="app-card" data-reveal style="margin-bottom:var(--sp-6);transition-delay:60ms">
+        <div class="card-head"><h2>Preferences</h2></div>
+
+        <div class="switch-row" style="border-bottom:none;padding-top:0">
+          <div><div class="lbl">Appearance</div><div class="sub">Choose how LunaTrack looks on this device</div></div>
+          <div class="segmented" id="themeSeg">
+            <button type="button" data-value="light">Light</button>
+            <button type="button" data-value="dark">Dark</button>
+            <button type="button" data-value="system">System</button>
+          </div>
+        </div>
+
+        <div class="switch-row">
+          <div><div class="lbl">Notifications</div><div class="sub">Get notified about weekly summaries and updates</div></div>
+          <label class="switch"><input type="checkbox" id="notifToggleSetting"><span class="switch-track"></span></label>
+        </div>
+
+        <div class="switch-row">
+          <div><div class="lbl">Period reminders</div><div class="sub">A gentle nudge as your estimated period approaches</div></div>
+          <label class="switch"><input type="checkbox" id="reminderToggleSetting"><span class="switch-track"></span></label>
+        </div>
+      </div>
+
+      <!-- Privacy -->
+      <div class="app-card" data-reveal style="transition-delay:120ms">
+        <div class="card-head"><h2>Privacy</h2></div>
+
+        <div class="switch-row" style="border-bottom:none;padding-top:0">
+          <div><div class="lbl">Export your data</div><div class="sub">Download everything you've logged as a file</div></div>
+          <button class="btn btn-secondary" style="padding:0.55rem 1.1rem;font-size:var(--fs-xs)" id="exportDataBtn">Export</button>
+        </div>
+
+        <div class="switch-row">
+          <div><div class="lbl">Delete account</div><div class="sub">Permanently remove your data from this device</div></div>
+          <button class="btn btn-secondary" style="padding:0.55rem 1.1rem;font-size:var(--fs-xs);color:var(--c-burgundy);border-color:var(--c-burgundy)" data-open-modal="modalDeleteConfirm">Delete</button>
+        </div>
+
+        <p style="margin-top:var(--sp-5);padding-top:var(--sp-5);border-top:1px solid var(--c-border);font-size:var(--fs-xs);color:var(--c-ink-faint)">
+          LunaTrack stores your logged data on this device only for now. When account sync is added, this section will explain exactly what's stored on our servers and how it's protected.
+        </p>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<div id="bottomNavRoot"></div>
+
+<div id="modalRoot">
+  <div class="modal-backdrop modal-danger" id="modalDeleteConfirm">
+    <div class="modal-box">
+      <div class="modal-head"><h3>Delete your data?</h3><button class="modal-close" data-close-modal aria-label="Close">✕</button></div>
+      <p style="font-size:var(--fs-sm);color:var(--c-ink-soft)">This permanently removes everything logged on this device — cycles, check-ins, and notes. This can't be undone.</p>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" data-close-modal>Cancel</button>
+        <button class="btn btn-primary" id="confirmDeleteBtn">Delete everything</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop modal-danger" id="modalResetCycleConfirm">
+    <div class="modal-box">
+      <div class="modal-head"><h3>Reset cycle data?</h3><button class="modal-close" data-close-modal aria-label="Close">✕</button></div>
+      <p style="font-size:var(--fs-sm);color:var(--c-ink-soft)">This clears your last period date, cycle length, and period length. Your check-ins, logs, and history stay untouched — you'll just be asked to set your cycle up again.</p>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" data-close-modal>Cancel</button>
+        <button class="btn btn-primary" id="confirmResetCycleBtn">Reset cycle data</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-stack" id="toastStack" aria-live="polite"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-client.js"></script>
+<script src="auth.js"></script>
+<script src="app.js"></script>
+<script>
+  (function () {
+    const { storage, showToast, setTheme } = LunaApp;
+
+    function initTheme() {
+      const seg = document.getElementById('themeSeg');
+      const current = storage.get('theme', 'light');
+      seg.querySelectorAll('button').forEach((btn) => {
+        btn.classList.toggle('is-selected', btn.dataset.value === current);
+        btn.addEventListener('click', () => {
+          seg.querySelectorAll('button').forEach((b) => b.classList.remove('is-selected'));
+          btn.classList.add('is-selected');
+          setTheme(btn.dataset.value);
+          showToast('Appearance updated');
+        });
+      });
+    }
+
+    function initToggles() {
+      const notif = document.getElementById('notifToggleSetting');
+      const reminder = document.getElementById('reminderToggleSetting');
+      notif.checked = storage.get('pref-notifications', true);
+      reminder.checked = storage.get('pref-reminders', true);
+      notif.addEventListener('change', () => { storage.set('pref-notifications', notif.checked); showToast('Preferences saved'); });
+      reminder.addEventListener('change', () => { storage.set('pref-reminders', reminder.checked); showToast('Preferences saved'); });
+    }
+
+    function initProfile() {
+      const name = document.getElementById('profileName');
+      const avatar = document.getElementById('profileAvatar');
+      name.addEventListener('change', () => {
+        avatar.textContent = (name.value.trim()[0] || 'M').toUpperCase();
+        showToast('Profile updated');
+      });
+      document.getElementById('changePhotoBtn').addEventListener('click', () => showToast('Photo upload is coming soon'));
+    }
+
+    function initExport() {
+      document.getElementById('exportDataBtn').addEventListener('click', () => {
+        const payload = {
+          exportedAt: new Date().toISOString(),
+          user: LunaApp.data.user,
+          currentCycle: LunaApp.data.currentCycle,
+          cycles: LunaApp.data.cycles,
+          insights: LunaApp.data.insights,
+          loggedDays: LunaApp.data.loggedDays,
+          localEntries: {
+            checkIns: Object.keys(localStorage).filter((k) => k.startsWith('lunatrack:checkin-')),
+            logs: Object.keys(localStorage).filter((k) => k.startsWith('lunatrack:log-')),
+          },
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'lunatrack-export.json';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        showToast('Your data export has started');
+      });
+    }
+
+    function initDelete() {
+      document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
+        Object.keys(localStorage).filter((k) => k.startsWith('lunatrack:')).forEach((k) => localStorage.removeItem(k));
+        LunaApp.closeModal(document.getElementById('modalDeleteConfirm'));
+        showToast('Your data has been deleted');
+        setTimeout(() => { window.location.href = 'index.html'; }, 1400);
+      });
+    }
+
+    function initCycleSetupSection() {
+      const summaryEl = document.getElementById('cycleSetupSummary');
+      const setup = LunaApp.getCycleSetup();
+      const startLabel = new Date(setup.lastPeriodStart + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      summaryEl.textContent = `${startLabel} · ${setup.cycleLength}-day cycle · ${setup.periodLength}-day period`;
+
+      document.getElementById('editCycleBtnSettings').addEventListener('click', () => LunaApp.openCycleSetupModal('edit'));
+
+      document.getElementById('confirmResetCycleBtn').addEventListener('click', () => {
+        localStorage.removeItem('lunatrack:cycle-setup');
+        localStorage.removeItem('lunatrack:onboarding-complete');
+        LunaApp.closeModal(document.getElementById('modalResetCycleConfirm'));
+        showToast('Cycle data reset');
+        setTimeout(() => window.location.reload(), 500);
+      });
+    }
+
+    function initLogout() {
+      document.getElementById('logoutBtn').addEventListener('click', async () => {
+        if (!LunaSupabase.isConfigured) {
+          showToast("Supabase isn't configured yet — nothing to log out of in demo mode");
+          return;
+        }
+        await LunaAuth.signOut();
+        window.location.href = 'login.html';
+      });
+    }
+
+    initTheme();
+    initToggles();
+    initProfile();
+    initExport();
+    initDelete();
+    initCycleSetupSection();
+    initLogout();
+  })();
+</script>
+</body>
+</html>

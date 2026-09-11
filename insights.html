@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Insights — LunaTrack</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="animations.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="dashboard.css">
+<link rel="stylesheet" href="app-responsive.css">
+</head>
+<body class="app-body" data-page="insights" data-title="Insights">
+
+<div id="authGuardOverlay" hidden>
+  <div class="luna-loader"></div>
+  <p>Loading your account&hellip;</p>
+  <a href="login.html" id="authGuardEscape" hidden style="font-size:13px;color:var(--c-plum);font-weight:600;">Taking longer than expected? Go to login &rarr;</a>
+</div>
+
+
+<a href="#appMain" class="skip-link">Skip to content</a>
+
+<div id="mobileTopbarRoot"></div>
+<div id="drawerRoot"></div>
+
+<div class="app-shell">
+  <div id="sidebarRoot"></div>
+
+  <main class="app-main" id="appMain">
+    <div class="app-main-inner">
+
+      <div class="app-topbar">
+        <div class="topbar-title">
+          <h1>Your insights</h1>
+          <p>See patterns across your logged cycles.</p>
+        </div>
+        <div class="topbar-actions" id="topbarActions"></div>
+      </div>
+
+      <div class="stat-grid" style="margin-bottom:var(--sp-6)">
+        <div class="stat-card" data-reveal><div class="stat-num" id="statAvgCycle">28 days</div><div class="stat-lbl">Average cycle length</div></div>
+        <div class="stat-card" data-reveal style="transition-delay:60ms"><div class="stat-num" id="statAvgPeriod">5 days</div><div class="stat-lbl">Average period length</div></div>
+        <div class="stat-card" data-reveal style="transition-delay:120ms"><div class="stat-num" id="statShortest">26 days</div><div class="stat-lbl">Shortest cycle</div></div>
+        <div class="stat-card" data-reveal style="transition-delay:180ms"><div class="stat-num" id="statLongest">30 days</div><div class="stat-lbl">Longest cycle</div></div>
+      </div>
+
+      <div class="app-card" data-reveal style="margin-bottom:var(--sp-6)">
+        <div class="card-head"><div><h2>Cycle length</h2><div class="card-sub">Last 6 cycles, in days</div></div></div>
+        <div class="chart-wrap" data-reveal>
+          <svg id="cycleLengthChart" viewBox="0 0 560 180">
+            <line class="chart-baseline" x1="0" y1="156" x2="560" y2="156" stroke="var(--c-border)" stroke-width="1"/>
+            <polyline class="chart-path" points="" fill="none" stroke="var(--c-burgundy)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="app-card" data-reveal style="margin-bottom:var(--sp-6)">
+        <div class="card-head"><div><h2>Period length</h2><div class="card-sub">Last 6 cycles, in days</div></div></div>
+        <div class="chart-wrap" data-reveal>
+          <svg id="periodLengthChart" viewBox="0 0 560 180">
+            <line class="chart-baseline" x1="0" y1="156" x2="560" y2="156" stroke="var(--c-border)" stroke-width="1"/>
+            <polyline class="chart-path" points="" fill="none" stroke="var(--c-lavender)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="app-card" data-reveal>
+        <div class="card-head"><div><h2>Symptom frequency</h2><div class="card-sub">How often each symptom was logged</div></div></div>
+        <div class="bar-chart" id="symptomBars" data-reveal></div>
+      </div>
+
+      <p style="margin-top:var(--sp-6);font-size:var(--fs-xs);color:var(--c-ink-faint);max-width:620px">
+        Insights are based on the information you've logged and are not medical diagnoses.
+      </p>
+
+    </div>
+  </main>
+</div>
+
+<div id="bottomNavRoot"></div>
+<div id="modalRoot"></div>
+<div class="toast-stack" id="toastStack" aria-live="polite"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-client.js"></script>
+<script src="auth.js"></script>
+<script src="app.js"></script>
+<script src="insights.js"></script>
+</body>
+</html>

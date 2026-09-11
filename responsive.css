@@ -1,0 +1,104 @@
+/* ==========================================================================
+   LunaTrack — Responsive Rules
+   Breakpoints: 1200 / 992 / 768 / 480
+   ========================================================================== */
+
+/* ---- 1200px : tighten container, scale hero type ---- */
+@media (max-width: 1200px) {
+  :root { --container-w: 96%; }
+  .hero-copy h1 { font-size: clamp(2.25rem, 4.6vw, 3.25rem); }
+  .bento-grid { grid-template-columns: repeat(3, 1fr); }
+  .bento-span-2 { grid-column: span 2; }
+}
+
+/* ---- 992px : tablet — collapse two-column layouts ---- */
+@media (max-width: 992px) {
+  section { padding: var(--sp-8) 0; }
+
+  .nav-links { display: none; }
+  .navbar .nav-actions { display: none; }
+  .nav-toggle { display: flex; }
+
+  .hero-grid { grid-template-columns: 1fr; }
+  .hero-visual { max-width: 480px; margin: var(--sp-7) auto 0; order: 2; }
+  .hero-copy { order: 1; text-align: left; }
+  .hero-copy p.lede { max-width: 100%; }
+  .hero-bg-orb { width: 420px; height: 420px; top: -120px; right: -140px; }
+  .orbit-1 { display: none; }
+
+  .trust-grid { grid-template-columns: 1fr 1fr; }
+
+  .bento-grid { grid-template-columns: repeat(2, 1fr); }
+  .bento-span-2 { grid-column: span 2; }
+  .bento-span-2-row { grid-row: span 1; }
+
+  .timeline { flex-direction: column; gap: var(--sp-7); }
+  .timeline::before { left: 26px; top: 0; bottom: 0; right: auto; width: 1px; height: auto; }
+  .timeline-line-fill {
+    left: 26px; top: 0; bottom: auto; right: auto;
+    width: 1px; height: 0;
+    transition: height 1.2s var(--ease-out);
+  }
+  .timeline.is-filled .timeline-line-fill { width: 1px; height: 90%; }
+  .timeline-step { display: flex; gap: var(--sp-5); align-items: flex-start; text-align: left; }
+  .timeline-num { margin-bottom: 0; flex-shrink: 0; }
+
+  .cycle-layout { grid-template-columns: 1fr; text-align: center; }
+  .phase-legend { text-align: left; }
+
+  .insights-grid { grid-template-columns: 1fr; }
+  .privacy-layout { grid-template-columns: 1fr; }
+  .privacy-visual { order: -1; min-height: 260px; }
+
+  .testimonial-grid { grid-template-columns: 1fr 1fr; }
+
+  .footer-top { grid-template-columns: 1.2fr 1fr 1fr; }
+}
+
+/* ---- 768px : mobile — single column, hamburger, stacked footer ---- */
+@media (max-width: 768px) {
+  :root { --nav-h: 68px; }
+  .container { padding: 0 var(--sp-5); }
+
+  .hero { padding-top: calc(var(--nav-h) + var(--sp-6)); }
+  .hero-copy h1 { font-size: 2.1rem; }
+  .hero-actions { flex-direction: column; align-items: stretch; }
+  .hero-actions .btn { width: 100%; }
+
+  .dashboard-card { padding: var(--sp-5); }
+  .dash-main { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+  .dash-cards-row { grid-template-columns: 1fr 1fr; }
+  .chip-moon, .chip-calendar { position: static; margin-bottom: var(--sp-3); display: inline-flex; }
+
+  .trust-grid { grid-template-columns: 1fr; }
+
+  .section-head h2 { font-size: var(--fs-2xl); }
+
+  .bento-grid { grid-template-columns: 1fr; }
+  .bento-span-2, .bento-span-2-row { grid-column: span 1; grid-row: span 1; }
+  .bento-card { min-height: 200px; }
+
+  .cycle-section { margin: 0 var(--sp-5); padding: var(--sp-8) var(--sp-5); }
+  .cycle-ring-wrap { width: 240px; height: 240px; }
+
+  .insight-stat-row { flex-wrap: wrap; gap: var(--sp-5); }
+
+  .testimonial-grid { grid-template-columns: 1fr; }
+
+  .final-cta { margin: 0 var(--sp-5); padding: var(--sp-8) var(--sp-5); }
+  .final-cta h2 { font-size: var(--fs-2xl); }
+
+  .footer-top { grid-template-columns: 1fr; gap: var(--sp-6); }
+  .footer-bottom { flex-direction: column; gap: var(--sp-4); align-items: flex-start; }
+}
+
+/* ---- 480px : small phones — tighten spacing further ---- */
+@media (max-width: 480px) {
+  .container { padding: 0 var(--sp-4); }
+  .hero-copy h1 { font-size: 1.85rem; }
+  .hero-copy p.lede { font-size: var(--fs-sm); }
+  .dash-cards-row { grid-template-columns: 1fr; }
+  .trust-item, .bento-card, .testimonial-card, .insight-panel { padding: var(--sp-5); }
+  .cycle-center .day-num { font-size: var(--fs-3xl); }
+  section { padding: var(--sp-7) 0; }
+}

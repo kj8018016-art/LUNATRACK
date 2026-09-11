@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign in — LunaTrack</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="animations.css">
+<link rel="stylesheet" href="app.css">
+
+<style>
+  body.auth-body {
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(circle at 15% 10%, rgba(156,143,191,0.14), transparent 55%), var(--c-bg);
+    padding: var(--sp-5);
+  }
+  .auth-card {
+    width: 100%; max-width: 400px;
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-lg);
+    padding: var(--sp-7) var(--sp-6);
+    box-shadow: var(--shadow-lift);
+  }
+  .auth-brand {
+    display: flex; align-items: center; justify-content: center; gap: var(--sp-2);
+    font-family: var(--font-display); font-size: var(--fs-lg); color: var(--c-plum);
+    margin-bottom: var(--sp-6);
+  }
+  .auth-tabs { display: flex; background: var(--c-surface-sunken); border-radius: var(--r-full); padding: 3px; margin-bottom: var(--sp-6); }
+  .auth-tab { flex: 1; text-align: center; padding: 0.55rem; border-radius: var(--r-full); font-size: var(--fs-sm); font-weight: 600; color: var(--c-ink-soft); }
+  .auth-tab.is-active { background: var(--c-surface); color: var(--c-plum); box-shadow: var(--shadow-soft); }
+  .auth-title { font-family: var(--font-display); font-size: var(--fs-xl); color: var(--c-ink); text-align: center; }
+  .auth-sub { font-size: var(--fs-sm); color: var(--c-ink-soft); text-align: center; margin-top: var(--sp-2); margin-bottom: var(--sp-6); }
+  .auth-error {
+    display: none;
+    background: rgba(214,51,108,0.08); border: 1px solid rgba(214,51,108,0.25); color: var(--c-burgundy);
+    font-size: var(--fs-xs); padding: var(--sp-3) var(--sp-4); border-radius: var(--r-md); margin-bottom: var(--sp-5);
+  }
+  .auth-note {
+    display: none;
+    background: rgba(156,143,191,0.1); border: 1px solid rgba(156,143,191,0.3); color: var(--c-plum);
+    font-size: var(--fs-xs); padding: var(--sp-3) var(--sp-4); border-radius: var(--r-md); margin-bottom: var(--sp-5);
+  }
+  .auth-footer { margin-top: var(--sp-6); text-align: center; font-size: var(--fs-xs); color: var(--c-ink-faint); }
+  .auth-divider { display: flex; align-items: center; gap: var(--sp-3); margin: var(--sp-5) 0; }
+  .auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--c-border); }
+  .auth-divider span { font-size: var(--fs-xs); color: var(--c-ink-faint); }
+  #googleSignInBtn { display: flex; align-items: center; justify-content: center; gap: var(--sp-3); }
+  .demo-banner {
+    max-width: 400px; width: 100%; margin: 0 auto var(--sp-5);
+    font-size: var(--fs-xs); color: var(--c-ink-faint); text-align: center;
+    border: 1px dashed var(--c-border-strong); border-radius: var(--r-md); padding: var(--sp-3) var(--sp-4);
+  }
+</style>
+</head>
+<body class="app-body auth-body" data-page="login" data-title="Sign in">
+
+<div id="authWrap">
+  <div class="demo-banner" id="demoBanner" hidden>
+    Supabase isn't configured yet, so this page can't actually sign anyone in.
+    <a href="dashboard.html" style="color:var(--c-plum);font-weight:600">Continue to the demo dashboard →</a>
+  </div>
+
+  <div class="auth-card">
+    <div class="auth-brand">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 12a8 8 0 1 1-8-8 6.5 6.5 0 0 0 8 8Z"/></svg>
+      LunaTrack
+    </div>
+
+    <div class="auth-tabs">
+      <button type="button" class="auth-tab is-active" id="tabSignIn">Sign in</button>
+      <button type="button" class="auth-tab" id="tabSignUp">Create account</button>
+    </div>
+
+    <div class="auth-title" id="authTitle">Welcome back</div>
+    <div class="auth-sub" id="authSub">Sign in to see your cycle dashboard.</div>
+
+    <div class="auth-error" id="authError"></div>
+    <div class="auth-note" id="authNote"></div>
+
+    <form id="authForm">
+      <div class="form-field">
+        <label for="authEmail">Email</label>
+        <input type="email" id="authEmail" required autocomplete="email">
+      </div>
+      <div class="form-field" style="margin-bottom:var(--sp-5)">
+        <label for="authPassword">Password</label>
+        <input type="password" id="authPassword" required autocomplete="current-password" minlength="6">
+      </div>
+      <button type="submit" class="btn btn-primary btn-block" id="authSubmitBtn">Sign in</button>
+    </form>
+
+    <div class="auth-divider"><span>or</span></div>
+
+    <button type="button" class="btn btn-secondary btn-block" id="googleSignInBtn">
+      <svg width="16" height="16" viewBox="0 0 48 48" style="flex-shrink:0">
+        <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.9 32.6 29.4 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.1 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/>
+        <path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.1 29.5 4 24 4c-7.7 0-14.3 4.4-17.7 10.7z"/>
+        <path fill="#4CAF50" d="M24 44c5.3 0 10.2-2 13.9-5.4l-6.4-5.4C29.4 34.9 26.8 36 24 36c-5.3 0-9.9-3.4-11.5-8.1l-6.5 5C9.6 39.6 16.2 44 24 44z"/>
+        <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-1 2.8-2.9 5.1-5.4 6.6l6.4 5.4C39.9 37 44 31 44 24c0-1.3-.1-2.7-.4-3.5z"/>
+      </svg>
+      Continue with Google
+    </button>
+
+    <p class="auth-footer">By continuing you agree this is a preview build — no real account data leaves your Supabase project.</p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-client.js"></script>
+<script src="auth.js"></script>
+<script>
+  (function () {
+    let mode = 'signin';
+
+    const tabSignIn = document.getElementById('tabSignIn');
+    const tabSignUp = document.getElementById('tabSignUp');
+    const title = document.getElementById('authTitle');
+    const sub = document.getElementById('authSub');
+    const submitBtn = document.getElementById('authSubmitBtn');
+    const errorBox = document.getElementById('authError');
+    const noteBox = document.getElementById('authNote');
+    const form = document.getElementById('authForm');
+
+    function setMode(next) {
+      mode = next;
+      tabSignIn.classList.toggle('is-active', mode === 'signin');
+      tabSignUp.classList.toggle('is-active', mode === 'signup');
+      title.textContent = mode === 'signin' ? 'Welcome back' : 'Create your account';
+      sub.textContent = mode === 'signin' ? 'Sign in to see your cycle dashboard.' : "Let's get your cycle set up.";
+      submitBtn.textContent = mode === 'signin' ? 'Sign in' : 'Create account';
+      errorBox.style.display = 'none';
+      noteBox.style.display = 'none';
+    }
+
+    tabSignIn.addEventListener('click', () => setMode('signin'));
+    tabSignUp.addEventListener('click', () => setMode('signup'));
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorBox.style.display = 'none';
+      noteBox.style.display = 'none';
+
+      if (!LunaSupabase.isConfigured) {
+        errorBox.textContent = "Supabase isn't configured yet — see supabase-client.js.";
+        errorBox.style.display = 'block';
+        return;
+      }
+
+      const email = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPassword').value;
+      submitBtn.disabled = true;
+      submitBtn.textContent = mode === 'signin' ? 'Signing in…' : 'Creating account…';
+
+      const result = mode === 'signin'
+        ? await LunaAuth.signIn(email, password)
+        : await LunaAuth.signUp(email, password);
+
+      submitBtn.disabled = false;
+      submitBtn.textContent = mode === 'signin' ? 'Sign in' : 'Create account';
+
+      if (result.error) {
+        errorBox.textContent = result.error;
+        errorBox.style.display = 'block';
+        return;
+      }
+
+      if (mode === 'signup' && !result.session) {
+        noteBox.textContent = 'Check your email to confirm your account, then sign in.';
+        noteBox.style.display = 'block';
+        setMode('signin');
+        return;
+      }
+
+      window.location.href = 'dashboard.html';
+    });
+
+    document.getElementById('googleSignInBtn').addEventListener('click', async () => {
+      errorBox.style.display = 'none';
+      if (!LunaSupabase.isConfigured) {
+        errorBox.textContent = "Supabase isn't configured yet — see supabase-client.js.";
+        errorBox.style.display = 'block';
+        return;
+      }
+      const result = await LunaAuth.signInWithGoogle();
+      if (result.error) {
+        errorBox.textContent = result.error;
+        errorBox.style.display = 'block';
+      }
+      // On success the browser is already navigating to Google — nothing else to do.
+    });
+
+    // If Supabase isn't configured, this is just a static preview — point people to the demo.
+    if (!LunaSupabase.isConfigured) {
+      document.getElementById('demoBanner').hidden = false;
+    } else {
+      LunaAuth.redirectIfSignedIn();
+    }
+  })();
+</script>
+</body>
+</html>
