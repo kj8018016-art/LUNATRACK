@@ -231,3 +231,22 @@
 }
 .edu-card .edu-icon svg { width: 24px; height: 24px; }
 .edu-card p { margin-top: var(--sp-2); font-size: var(--fs-sm); color: var(--c-ink-soft); }
+
+/* -------------------------------------------------------------------------
+   NOTES LIST (dashboard)
+   ------------------------------------------------------------------------- */
+.notes-list { display: flex; flex-direction: column; gap: var(--sp-3); }
+.note-item {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-3);
+  padding: var(--sp-4); border-radius: var(--r-md); background: var(--c-surface-sunken);
+}
+.note-item .note-body { min-width: 0; }
+.note-item .note-text { font-size: var(--fs-sm); color: var(--c-ink); white-space: pre-wrap; word-break: break-word; }
+.note-item .note-date { font-size: 11px; color: var(--c-ink-faint); margin-top: 4px; }
+.note-delete-btn {
+  width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+  display: grid; place-items: center; color: var(--c-ink-faint);
+  transition: background var(--dur-fast) var(--ease-soft), color var(--dur-fast) var(--ease-soft);
+}
+.note-delete-btn:hover { background: var(--c-surface); color: var(--c-burgundy); }
+.note-delete-btn svg { width: 14px; height: 14px; }

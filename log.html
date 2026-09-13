@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>
+(function(){
+  try {
+    var raw = localStorage.getItem('lunatrack:theme');
+    var pref = raw ? JSON.parse(raw) : 'light';
+    var resolved = pref === 'system' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : pref;
+    if (resolved === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  } catch (e) {}
+})();
+</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Log Today — LunaTrack</title>
@@ -38,7 +49,7 @@
       <div class="app-topbar">
         <div class="topbar-title">
           <h1>Log Today</h1>
-          <p>Thursday, September 9</p>
+          <p id="logDateLabel">Today</p>
         </div>
         <div class="topbar-actions" id="topbarActions"></div>
       </div>

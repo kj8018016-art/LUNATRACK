@@ -14,7 +14,7 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Chat — LunaTrack</title>
+<title>Learn — LunaTrack</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,14 +26,13 @@
 <link rel="stylesheet" href="dashboard.css">
 <link rel="stylesheet" href="app-responsive.css">
 </head>
-<body class="app-body" data-page="ai-chat" data-title="AI Chat">
+<body class="app-body" data-page="learn" data-title="Learn">
 
 <div id="authGuardOverlay" hidden>
   <div class="luna-loader"></div>
   <p>Loading your account&hellip;</p>
   <a href="login.html" id="authGuardEscape" hidden style="font-size:13px;color:var(--c-plum);font-weight:600;">Taking longer than expected? Go to login &rarr;</a>
 </div>
-
 
 <a href="#appMain" class="skip-link">Skip to content</a>
 
@@ -44,59 +43,54 @@
   <div id="sidebarRoot"></div>
 
   <main class="app-main" id="appMain">
-    <div class="app-main-inner" style="max-width:760px">
+    <div class="app-main-inner">
 
       <div class="app-topbar">
         <div class="topbar-title">
-          <h1>AI Chat</h1>
-          <p>Ask about your cycle, symptoms, or how to use LunaTrack.</p>
+          <h1>Learn</h1>
+          <p>Understanding your cycle, symptoms, and how LunaTrack works.</p>
         </div>
         <div class="topbar-actions" id="topbarActions"></div>
       </div>
 
-      <div class="app-card chat-shell" data-reveal>
-        <div class="chat-header">
-          <span class="chat-avatar">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16v12H8l-4 4V4Z"/><path d="M8 9h8M8 12.5h5"/></svg>
-          </span>
-          <div>
-            <h2>LunaTrack Assistant</h2>
-            <div class="chat-status"><span class="dot"></span>Online</div>
-          </div>
-          <span class="chat-preview-badge">Preview</span>
-        </div>
+      <div class="help-categories" id="learnCategoryChips"></div>
 
-        <div class="chat-messages" id="chatMessages"></div>
+      <div class="learn-grid" id="learnGrid"></div>
 
-        <div class="chat-suggestions">
-          <button type="button" class="chat-suggestion-chip">When's my next period?</button>
-          <button type="button" class="chat-suggestion-chip">Am I in my fertile window?</button>
-          <button type="button" class="chat-suggestion-chip">What's my most common symptom?</button>
-          <button type="button" class="chat-suggestion-chip">How do I log today?</button>
-        </div>
-
-        <div class="chat-input-row">
-          <input type="text" id="chatInput" placeholder="Ask something about your cycle..." autocomplete="off">
-          <button class="chat-send-btn" id="chatSendBtn" aria-label="Send message">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7Z"/></svg>
-          </button>
-        </div>
-      </div>
-
-      <p class="chat-disclaimer">Responses are simulated for this preview and pulled from your logged data — not a real AI model, and not medical advice.</p>
+      <p style="margin-top:var(--sp-7);font-size:var(--fs-xs);color:var(--c-ink-faint);max-width:640px">
+        This content is educational and general in nature. It is not medical advice and does not replace guidance from a qualified healthcare professional.
+      </p>
 
     </div>
   </main>
 </div>
 
 <div id="bottomNavRoot"></div>
-<div id="modalRoot"></div>
+
+<div id="modalRoot">
+  <div class="modal-backdrop" id="modalLearnArticle">
+    <div class="modal-box" style="max-width:560px">
+      <div class="modal-head">
+        <div>
+          <div class="learn-cat" id="learnModalCat">Category</div>
+          <h3 id="learnModalTitle">Title</h3>
+        </div>
+        <button class="modal-close" data-close-modal aria-label="Close">&#10005;</button>
+      </div>
+      <div class="learn-article-body" id="learnModalBody"></div>
+      <div class="modal-actions">
+        <button class="btn btn-primary btn-block" data-close-modal>Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="toast-stack" id="toastStack" aria-live="polite"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-client.js"></script>
 <script src="auth.js"></script>
 <script src="app.js"></script>
-<script src="ai-chat.js"></script>
+<script src="learn-content.js"></script>
 </body>
 </html>

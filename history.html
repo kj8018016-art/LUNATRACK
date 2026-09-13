@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>
+(function(){
+  try {
+    var raw = localStorage.getItem('lunatrack:theme');
+    var pref = raw ? JSON.parse(raw) : 'light';
+    var resolved = pref === 'system' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : pref;
+    if (resolved === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  } catch (e) {}
+})();
+</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>History — LunaTrack</title>
@@ -80,21 +91,32 @@
 <script src="app.js"></script>
 <script>
   (function () {
-    const { data } = LunaApp;
-
     function renderHistory() {
+      const { data, dateFromISO, fmtShort } = LunaApp;
       const list = document.getElementById('historyList');
-      list.innerHTML = data.cycles.map((c, i) => `
+      const cycles = data.cycles;
+
+      if (!cycles.length) {
+        list.innerHTML = '<div class="empty-state">No cycles logged yet. Log a period on the Log Today page to start building your history.</div>';
+        return;
+      }
+
+      list.innerHTML = cycles.map((c, i) => {
+        const range = fmtShort(dateFromISO(c.start)) + ' \u2013 ' + fmtShort(dateFromISO(c.end));
+        const label = c.cycleLength ? 'Previous' : 'Current';
+        const lenLabel = c.cycleLength ? (c.cycleLength + ' days') : 'In progress';
+        return `
         <button class="history-row" data-index="${i}" data-reveal style="transition-delay:${i * 50}ms">
           <div>
-            <div class="tag">${c.label}</div>
-            <div class="range">${c.range}</div>
+            <div class="tag">${label}</div>
+            <div class="range">${range}</div>
           </div>
           <div style="display:flex;align-items:center;gap:var(--sp-4)">
-            <span class="len">${c.length} days</span>
+            <span class="len">${lenLabel}</span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg>
           </div>
-        </button>`).join('');
+        </button>`;
+      }).join('');
 
       list.querySelectorAll('.history-row').forEach((row) => {
         row.addEventListener('click', () => openSummary(Number(row.dataset.index)));
@@ -104,15 +126,17 @@
     }
 
     function openSummary(index) {
+      const { data, dateFromISO, fmtShort } = LunaApp;
       const c = data.cycles[index];
-      document.getElementById('csModalRange').textContent = c.range;
-      document.getElementById('csModalTag').textContent = c.label + ' cycle';
-      document.getElementById('csModalLength').textContent = c.length + ' days';
+      const range = fmtShort(dateFromISO(c.start)) + ' \u2013 ' + fmtShort(dateFromISO(c.end));
+      document.getElementById('csModalRange').textContent = range;
+      document.getElementById('csModalTag').textContent = (c.cycleLength ? 'Previous' : 'Current') + ' cycle';
+      document.getElementById('csModalLength').textContent = c.cycleLength ? (c.cycleLength + ' days') : 'In progress';
       document.getElementById('csModalPeriodLength').textContent = c.periodLength + ' days';
       LunaApp.openModal('modalCycleSummary');
     }
 
-    renderHistory();
+    document.addEventListener('lunatrack:data-ready', renderHistory);
   })();
 </script>
 </body>

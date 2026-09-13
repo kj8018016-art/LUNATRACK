@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>
+(function(){
+  try {
+    var raw = localStorage.getItem('lunatrack:theme');
+    var pref = raw ? JSON.parse(raw) : 'light';
+    var resolved = pref === 'system' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : pref;
+    if (resolved === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  } catch (e) {}
+})();
+</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard — LunaTrack</title>
@@ -37,10 +48,15 @@
 
       <div class="app-topbar">
         <div class="topbar-title">
-          <h1>Good morning, Maya</h1>
-          <p>Here's a look at your cycle today.</p>
+          <h1 id="greetingText">Good morning</h1>
+          <p id="greetingSub">Here's a look at your cycle today.</p>
         </div>
         <div class="topbar-actions" id="topbarActions"></div>
+      </div>
+
+      <div class="mobile-greeting" id="mobileGreeting">
+        <h1 id="mobileGreetingText">Good morning</h1>
+        <p id="mobileGreetingSub">Here's a look at your cycle today.</p>
       </div>
 
       <!-- Cycle card + Quick actions / Check-in -->
@@ -56,6 +72,7 @@
             </div>
           </div>
 
+          <div id="cycleCardBody">
           <div class="cycle-ring-block" id="cycleRing">
             <svg viewBox="0 0 168 168" width="168" height="168">
               <circle cx="84" cy="84" r="72" fill="none" stroke="rgba(251,239,244,0.18)" stroke-width="12"/>
@@ -89,6 +106,7 @@
             <div style="text-align:right"><div class="k">Estimated next period</div><div class="v" id="cycleNext">Sep 24</div></div>
           </div>
           <p class="cycle-card-note" id="cycleFertileNote">Fertile window (estimated): Sep 4 – Sep 9. Estimates are based on your logged history — not a guarantee.</p>
+          </div>
         </div>
 
         <div>
@@ -188,6 +206,18 @@
         </div>
       </div>
 
+      <!-- Notes -->
+      <div class="app-card" data-reveal style="margin-top:var(--sp-6)">
+        <div class="card-head">
+          <div>
+            <h2>Your notes</h2>
+            <div class="card-sub">Anything you've jotted down</div>
+          </div>
+          <button class="btn-ghost" style="font-size:var(--fs-xs)" data-open-modal="modalAddNote">+ Add note</button>
+        </div>
+        <div class="notes-list" id="notesList"></div>
+      </div>
+
       <!-- Educational card -->
       <div class="app-card edu-card" style="margin-top:var(--sp-6)" data-reveal>
         <div class="edu-icon">
@@ -196,7 +226,7 @@
         <div>
           <h3>Understanding your cycle</h3>
           <p>Cycle length and symptoms can vary from month to month — logging consistently helps LunaTrack build a clearer picture over time.</p>
-          <button class="btn btn-secondary" style="margin-top:var(--sp-4)" id="learnMoreBtn">Learn more</button>
+          <a href="learn.html" class="btn btn-secondary" style="margin-top:var(--sp-4);display:inline-flex">Learn more</a>
         </div>
       </div>
 

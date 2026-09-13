@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>
+(function(){
+  try {
+    var raw = localStorage.getItem('lunatrack:theme');
+    var pref = raw ? JSON.parse(raw) : 'light';
+    var resolved = pref === 'system' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : pref;
+    if (resolved === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  } catch (e) {}
+})();
+</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Settings — LunaTrack</title>
@@ -47,22 +58,20 @@
       <div class="app-card" data-reveal style="margin-bottom:var(--sp-6)">
         <div class="card-head"><h2>Profile</h2><button class="btn btn-secondary" style="padding:0.5rem 1rem;font-size:var(--fs-xs)" id="logoutBtn">Log out</button></div>
         <div style="display:flex;align-items:center;gap:var(--sp-4);margin-bottom:var(--sp-6)">
-          <span class="avatar" style="width:56px;height:56px;font-size:var(--fs-md)" id="profileAvatar">M</span>
+          <span id="profileAvatarWrap"></span>
           <div>
+            <input type="file" id="avatarFileInput" accept="image/*" hidden>
             <button class="btn btn-secondary" style="padding:0.5rem 1rem;font-size:var(--fs-xs)" id="changePhotoBtn">Change photo</button>
+            <p style="font-size:11px;color:var(--c-ink-faint);margin-top:var(--sp-2)">JPG or PNG, up to 4MB</p>
           </div>
         </div>
         <div class="form-field">
           <label for="profileName">Name</label>
-          <input type="text" id="profileName" value="Maya">
-        </div>
-        <div class="form-field">
-          <label for="profileEmail">Email</label>
-          <input type="email" id="profileEmail" value="maya@example.com">
+          <input type="text" id="profileName">
         </div>
         <div class="form-field" style="margin-bottom:0">
-          <label for="profileDob">Date of birth</label>
-          <input type="text" id="profileDob" placeholder="MM / DD / YYYY">
+          <label for="profileEmail">Email</label>
+          <input type="email" id="profileEmail" disabled style="opacity:0.65;cursor:not-allowed">
         </div>
       </div>
 
@@ -118,7 +127,7 @@
         </div>
 
         <p style="margin-top:var(--sp-5);padding-top:var(--sp-5);border-top:1px solid var(--c-border);font-size:var(--fs-xs);color:var(--c-ink-faint)">
-          LunaTrack stores your logged data on this device only for now. When account sync is added, this section will explain exactly what's stored on our servers and how it's protected.
+          Your logged data is stored in your own Supabase project, protected by Row Level Security so only your account can read or write it.
         </p>
       </div>
 
@@ -132,7 +141,7 @@
   <div class="modal-backdrop modal-danger" id="modalDeleteConfirm">
     <div class="modal-box">
       <div class="modal-head"><h3>Delete your data?</h3><button class="modal-close" data-close-modal aria-label="Close">✕</button></div>
-      <p style="font-size:var(--fs-sm);color:var(--c-ink-soft)">This permanently removes everything logged on this device — cycles, check-ins, and notes. This can't be undone.</p>
+      <p style="font-size:var(--fs-sm);color:var(--c-ink-soft)">This permanently deletes your account and everything in it — cycles, logs, notes, and settings. This can't be undone.</p>
       <div class="modal-actions">
         <button class="btn btn-secondary" data-close-modal>Cancel</button>
         <button class="btn btn-primary" id="confirmDeleteBtn">Delete everything</button>
@@ -176,23 +185,57 @@
       });
     }
 
-    function initToggles() {
+    async function initToggles() {
       const notif = document.getElementById('notifToggleSetting');
       const reminder = document.getElementById('reminderToggleSetting');
-      notif.checked = storage.get('pref-notifications', true);
-      reminder.checked = storage.get('pref-reminders', true);
-      notif.addEventListener('change', () => { storage.set('pref-notifications', notif.checked); showToast('Preferences saved'); });
-      reminder.addEventListener('change', () => { storage.set('pref-reminders', reminder.checked); showToast('Preferences saved'); });
+      const user = await LunaAuth.getUser();
+      if (!user) return;
+
+      const { data: prefs } = await LunaSupabase.client
+        .from('preferences').select('notifications_enabled, reminders_enabled').eq('user_id', user.id).maybeSingle();
+
+      notif.checked = prefs ? prefs.notifications_enabled : true;
+      reminder.checked = prefs ? prefs.reminders_enabled : true;
+
+      notif.addEventListener('change', async () => {
+        const { error } = await LunaSupabase.client.from('preferences')
+          .upsert({ user_id: user.id, notifications_enabled: notif.checked, updated_at: new Date().toISOString() });
+        showToast(error ? 'Could not save preference' : 'Preferences saved');
+      });
+      reminder.addEventListener('change', async () => {
+        const { error } = await LunaSupabase.client.from('preferences')
+          .upsert({ user_id: user.id, reminders_enabled: reminder.checked, updated_at: new Date().toISOString() });
+        showToast(error ? 'Could not save preference' : 'Preferences saved');
+      });
     }
 
     function initProfile() {
-      const name = document.getElementById('profileName');
-      const avatar = document.getElementById('profileAvatar');
-      name.addEventListener('change', () => {
-        avatar.textContent = (name.value.trim()[0] || 'M').toUpperCase();
+      const nameInput = document.getElementById('profileName');
+      const emailInput = document.getElementById('profileEmail');
+      const avatarWrap = document.getElementById('profileAvatarWrap');
+
+      nameInput.value = LunaApp.data.user.name;
+      emailInput.value = LunaApp.data.user.email;
+      avatarWrap.innerHTML = LunaApp.avatarHTML(56);
+
+      nameInput.addEventListener('change', async () => {
+        const result = await LunaApp.saveProfileName(nameInput.value);
+        if (result.error) { showToast(result.error); return; }
         showToast('Profile updated');
+        avatarWrap.innerHTML = LunaApp.avatarHTML(56);
       });
-      document.getElementById('changePhotoBtn').addEventListener('click', () => showToast('Photo upload is coming soon'));
+
+      const fileInput = document.getElementById('avatarFileInput');
+      document.getElementById('changePhotoBtn').addEventListener('click', () => fileInput.click());
+      fileInput.addEventListener('change', async () => {
+        const file = fileInput.files[0];
+        if (!file) return;
+        showToast('Uploading photo…');
+        const result = await LunaApp.uploadAvatar(file);
+        if (result.error) { showToast(result.error); return; }
+        avatarWrap.innerHTML = LunaApp.avatarHTML(56);
+        showToast('Profile photo updated');
+      });
     }
 
     function initExport() {
@@ -204,10 +247,7 @@
           cycles: LunaApp.data.cycles,
           insights: LunaApp.data.insights,
           loggedDays: LunaApp.data.loggedDays,
-          localEntries: {
-            checkIns: Object.keys(localStorage).filter((k) => k.startsWith('lunatrack:checkin-')),
-            logs: Object.keys(localStorage).filter((k) => k.startsWith('lunatrack:log-')),
-          },
+          notes: LunaApp.data.notes,
         };
         const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
@@ -223,25 +263,38 @@
     }
 
     function initDelete() {
-      document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
-        Object.keys(localStorage).filter((k) => k.startsWith('lunatrack:')).forEach((k) => localStorage.removeItem(k));
+      document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+        const btn = document.getElementById('confirmDeleteBtn');
+        btn.disabled = true; btn.textContent = 'Deleting\u2026';
+        const { error } = await LunaSupabase.client.rpc('delete_own_account');
+        if (error) {
+          showToast('Could not delete account: ' + error.message);
+          btn.disabled = false; btn.textContent = 'Delete everything';
+          return;
+        }
+        await LunaAuth.signOut();
         LunaApp.closeModal(document.getElementById('modalDeleteConfirm'));
-        showToast('Your data has been deleted');
+        showToast('Your account has been deleted');
         setTimeout(() => { window.location.href = 'index.html'; }, 1400);
       });
     }
 
     function initCycleSetupSection() {
       const summaryEl = document.getElementById('cycleSetupSummary');
-      const setup = LunaApp.getCycleSetup();
-      const startLabel = new Date(setup.lastPeriodStart + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      summaryEl.textContent = `${startLabel} · ${setup.cycleLength}-day cycle · ${setup.periodLength}-day period`;
+      const setup = storage.get('cycle-setup-raw', null);
+      if (setup) {
+        const startLabel = new Date(setup.lastPeriodStart + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        summaryEl.textContent = `${startLabel} \u00b7 ${setup.cycleLength}-day cycle \u00b7 ${setup.periodLength}-day period`;
+      } else {
+        summaryEl.textContent = 'Not set up yet';
+      }
 
       document.getElementById('editCycleBtnSettings').addEventListener('click', () => LunaApp.openCycleSetupModal('edit'));
 
-      document.getElementById('confirmResetCycleBtn').addEventListener('click', () => {
-        localStorage.removeItem('lunatrack:cycle-setup');
-        localStorage.removeItem('lunatrack:onboarding-complete');
+      document.getElementById('confirmResetCycleBtn').addEventListener('click', async () => {
+        const user = await LunaAuth.getUser();
+        if (user) await LunaSupabase.client.from('cycle_setups').delete().eq('user_id', user.id);
+        localStorage.removeItem('lunatrack:cycle-setup-raw');
         LunaApp.closeModal(document.getElementById('modalResetCycleConfirm'));
         showToast('Cycle data reset');
         setTimeout(() => window.location.reload(), 500);
@@ -250,22 +303,22 @@
 
     function initLogout() {
       document.getElementById('logoutBtn').addEventListener('click', async () => {
-        if (!LunaSupabase.isConfigured) {
-          showToast("Supabase isn't configured yet — nothing to log out of in demo mode");
-          return;
-        }
         await LunaAuth.signOut();
         window.location.href = 'login.html';
       });
     }
 
-    initTheme();
-    initToggles();
-    initProfile();
-    initExport();
-    initDelete();
-    initCycleSetupSection();
-    initLogout();
+    function init() {
+      initTheme();
+      initToggles();
+      initProfile();
+      initExport();
+      initDelete();
+      initCycleSetupSection();
+      initLogout();
+    }
+
+    document.addEventListener('lunatrack:data-ready', init);
   })();
 </script>
 </body>

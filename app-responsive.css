@@ -17,6 +17,7 @@
 
   .app-main { padding: var(--sp-5) var(--sp-5) calc(84px + var(--sp-6)); }
   .app-topbar { display: none; } /* mobile-topbar replaces it */
+  .mobile-greeting { display: block; margin-bottom: var(--sp-6); }
 
   .quick-actions { grid-template-columns: 1fr; }
   .mini-stat-grid { grid-template-columns: repeat(2, 1fr); }
@@ -26,6 +27,7 @@
 }
 
 @media (max-width: 768px) {
+  .learn-grid { grid-template-columns: 1fr; }
   .stat-grid { grid-template-columns: repeat(2, 1fr); }
   .cycle-card-stats { flex-wrap: wrap; gap: var(--sp-4); }
   .cycle-card-stats .stat { flex: 1 1 40%; }

@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>
+(function(){
+  try {
+    var raw = localStorage.getItem('lunatrack:theme');
+    var pref = raw ? JSON.parse(raw) : 'light';
+    var resolved = pref === 'system' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : pref;
+    if (resolved === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  } catch (e) {}
+})();
+</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Insights — LunaTrack</title>
@@ -43,11 +54,21 @@
         <div class="topbar-actions" id="topbarActions"></div>
       </div>
 
+      <div class="app-card" id="insightsEmptyBanner" style="display:none;text-align:center;padding:var(--sp-8) var(--sp-5)" data-reveal>
+        <div class="edu-icon" style="margin:0 auto var(--sp-5);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="M7 14l4-5 3 3 4-6"/></svg>
+        </div>
+        <h2 style="font-family:var(--font-display);font-size:var(--fs-lg);margin-bottom:var(--sp-3)">Not enough data yet</h2>
+        <p style="color:var(--c-ink-soft);font-size:var(--fs-sm);max-width:420px;margin:0 auto">Keep logging your period and symptoms — once you've logged at least two cycles, your insights will show up here.</p>
+        <a href="log.html" class="btn btn-primary" style="margin-top:var(--sp-6);display:inline-flex">Log today</a>
+      </div>
+
+      <div id="insightsContent">
       <div class="stat-grid" style="margin-bottom:var(--sp-6)">
-        <div class="stat-card" data-reveal><div class="stat-num" id="statAvgCycle">28 days</div><div class="stat-lbl">Average cycle length</div></div>
-        <div class="stat-card" data-reveal style="transition-delay:60ms"><div class="stat-num" id="statAvgPeriod">5 days</div><div class="stat-lbl">Average period length</div></div>
-        <div class="stat-card" data-reveal style="transition-delay:120ms"><div class="stat-num" id="statShortest">26 days</div><div class="stat-lbl">Shortest cycle</div></div>
-        <div class="stat-card" data-reveal style="transition-delay:180ms"><div class="stat-num" id="statLongest">30 days</div><div class="stat-lbl">Longest cycle</div></div>
+        <div class="stat-card" data-reveal><div class="stat-num" id="statAvgCycle">\u2014</div><div class="stat-lbl">Average cycle length</div></div>
+        <div class="stat-card" data-reveal style="transition-delay:60ms"><div class="stat-num" id="statAvgPeriod">\u2014</div><div class="stat-lbl">Average period length</div></div>
+        <div class="stat-card" data-reveal style="transition-delay:120ms"><div class="stat-num" id="statShortest">\u2014</div><div class="stat-lbl">Shortest cycle</div></div>
+        <div class="stat-card" data-reveal style="transition-delay:180ms"><div class="stat-num" id="statLongest">\u2014</div><div class="stat-lbl">Longest cycle</div></div>
       </div>
 
       <div class="app-card" data-reveal style="margin-bottom:var(--sp-6)">
@@ -73,11 +94,13 @@
       <div class="app-card" data-reveal>
         <div class="card-head"><div><h2>Symptom frequency</h2><div class="card-sub">How often each symptom was logged</div></div></div>
         <div class="bar-chart" id="symptomBars" data-reveal></div>
+        <p class="empty-state" id="symptomBarsEmpty" style="display:none">No symptoms logged yet.</p>
       </div>
 
       <p style="margin-top:var(--sp-6);font-size:var(--fs-xs);color:var(--c-ink-faint);max-width:620px">
         Insights are based on the information you've logged and are not medical diagnoses.
       </p>
+      </div>
 
     </div>
   </main>

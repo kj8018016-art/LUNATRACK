@@ -1,26 +1,29 @@
 /* ==========================================================================
    LunaTrack App — app.js
    Shared shell for every authenticated page: navigation, theme, modals,
-   toasts, notifications, and the centralized mock data object. Individual
-   pages (dashboard.js, calendar.js, log.js, insights.js) read LunaApp.data
-   and call LunaApp.* helpers.
+   toasts, notifications, and the real (Supabase-backed) data layer.
+   Individual pages (dashboard.js, calendar.js, log.js, insights.js) read
+   LunaApp.data — populated by LunaApp.loadUserData() — and call the CRUD
+   helpers exported at the bottom of this file.
 
-   When Supabase is connected, LunaApp.data becomes the shape live queries
-   should be normalized into, and LunaApp.storage.* calls are the seams
-   where API calls will replace localStorage reads/writes.
+   There is no mock/demo data anymore. If Supabase isn't configured (see
+   supabase-client.js), every protected page shows a "connect Supabase"
+   notice instead of fake numbers — see renderConfigGate() below.
    ========================================================================== */
 
 const LunaApp = (() => {
 
-  /* ---- Icon paths (viewBox 0 0 24 24, stroke-based, matches landing style) ---- */
+  /* ---- Icon paths (viewBox 0 0 24 24, stroke-based) ---- */
   const ICONS = {
     home: '<path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9a1 1 0 0 0 1 1h4v-6h2v6h4a1 1 0 0 0 1-1v-9"/>',
     calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/>',
     edit: '<path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3Z"/><path d="M13 6.5 17.5 11"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>',
     chart: '<path d="M3 3v18h18"/><path d="M7 14l4-5 3 3 4-6"/>',
     clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>',
     settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 0 1-4 0v-.09A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 0 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 0 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9a1.7 1.7 0 0 0 1.55 1H21a2 2 0 0 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1Z"/>',
     help: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.8.4-1.3 1-1.3 1.9v.3"/><path d="M12 17h.01"/>',
+    book: '<path d="M4 19.5V6a2 2 0 0 1 2-2h13v15H6a2 2 0 0 0-2 2Z"/><path d="M6 17h13"/>',
     bell: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
     menu: '<line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>',
     x: '<path d="M18 6 6 18M6 6l12 12"/>',
@@ -31,93 +34,43 @@ const LunaApp = (() => {
     trash: '<path d="M4 7h16M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2m-8 0 1 13a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2l1-13"/>',
     check: '<path d="M20 6 9 17l-5-5"/>',
     user: '<circle cx="12" cy="8" r="4"/><path d="M4 20c1.5-4 4.5-6 8-6s6.5 2 8 6"/>',
-    logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>',
     moon: '<path d="M20 12a8 8 0 1 1-8-8 6.5 6.5 0 0 0 8 8Z"/>',
     chat: '<path d="M4 4h16v12H8l-4 4V4Z"/><path d="M8 9h8M8 12.5h5"/>',
-    chevronLeft: '<path d="m15 6-6 6 6 6"/>',
-    download: '<path d="M12 3v12m0 0-4-4m4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>',
+    search: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
+    plug: '<path d="M9 3v4M15 3v4M6 7h12l-1 5a5 5 0 0 1-10 0Z"/><path d="M12 16v5"/>',
   };
 
   function icon(name, size) {
     const s = size || 20;
-    return `<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS[name] || ''}</svg>`;
+    return '<svg viewBox="0 0 24 24" width="' + s + '" height="' + s + '" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + (ICONS[name] || '') + '</svg>';
   }
 
   /* -------------------------------------------------------------------------
-     MOCK DATA — centralized, single source of truth for the frontend.
-     This shape is what a future Supabase-backed data layer should return.
+     REAL DATA MODEL — populated by loadUserData() from Supabase. Nothing
+     here is mock data; every field starts empty and is filled from the
+     signed-in user's own rows.
      ------------------------------------------------------------------------- */
   const data = {
-    user: { name: 'Maya', initials: 'M', email: 'maya@example.com', memberSince: 'Jan 2026' },
-
+    user: { id: null, name: '', initials: '?', email: '', avatarUrl: null, memberSince: '' },
     currentCycle: {
-      day: 14,
-      cycleLength: 28,
-      periodLength: 5,
-      startDate: 'Aug 27',
-      nextPeriodDate: 'Sep 24',
-      daysUntilNext: 15,
-      ovulationDay: 14,
-      ovulationDate: 'Sep 9',
-      fertileWindowLabel: 'Sep 4 – Sep 9',
+      hasSetup: false,
+      day: null, cycleLength: 28, periodLength: 5,
+      startDate: '', nextPeriodDate: '', daysUntilNext: null,
+      ovulationDay: null, ovulationDate: '', fertileWindowLabel: '',
     },
-
-    cycles: [
-      { label: 'Current', range: 'Aug 27 – Sep 23', length: 28, periodLength: 5 },
-      { label: 'Previous', range: 'Jul 30 – Aug 26', length: 28, periodLength: 5 },
-      { label: 'Previous', range: 'Jul 2 – Jul 29', length: 27, periodLength: 4 },
-      { label: 'Previous', range: 'Jun 4 – Jul 1', length: 29, periodLength: 5 },
-      { label: 'Previous', range: 'May 7 – Jun 3', length: 28, periodLength: 5 },
-      { label: 'Previous', range: 'Apr 9 – May 6', length: 30, periodLength: 6 },
-    ],
-
+    cycles: [],
     insights: {
-      avgCycleLength: 28,
-      avgPeriodLength: 5,
-      shortestCycle: 26,
-      longestCycle: 30,
-      variationDays: 2,
-      cyclesLogged: 6,
-      recentCycleLengths: [27, 29, 28, 30, 27, 28],
-      recentPeriodLengths: [4, 5, 5, 6, 5, 5],
-      symptomFrequency: [
-        { name: 'Fatigue', count: 9 },
-        { name: 'Cramps', count: 7 },
-        { name: 'Bloating', count: 6 },
-        { name: 'Headache', count: 5 },
-        { name: 'Backache', count: 4 },
-      ],
+      hasEnoughData: false,
+      avgCycleLength: null, avgPeriodLength: null, shortestCycle: null, longestCycle: null,
+      variationDays: null, cyclesLogged: 0, recentCycleLengths: [], recentPeriodLengths: [],
+      symptomFrequency: [],
     },
-
-    recentActivity: [
-      { when: 'Today', text: 'Check-in completed' },
-      { when: 'Yesterday', text: 'Headache logged' },
-      { when: 'Sep 5', text: 'Period ended' },
-      { when: 'Sep 1', text: 'Mood recorded' },
-    ],
-
-    notifications: [
-      { id: 1, text: 'Your cycle log was saved.', time: '2h ago', read: false },
-      { id: 2, text: 'Your estimated period is approaching.', time: '1d ago', read: false },
-      { id: 3, text: 'Your weekly cycle summary is ready.', time: '3d ago', read: true },
-    ],
-
-    /** Per-date logged info, keyed by "YYYY-M-D", used by the calendar & dashboard preview. */
-    loggedDays: {
-      '2026-9-1': { period: false, symptoms: ['Fatigue'], mood: 'Good', notes: '' },
-      '2026-9-5': { period: false, symptoms: [], mood: 'Okay', notes: 'Period ended today.' },
-      '2026-8-27': { period: true, symptoms: ['Cramps', 'Headache'], mood: 'Low', notes: '' },
-      '2026-8-28': { period: true, symptoms: ['Cramps'], mood: 'Okay', notes: '' },
-      '2026-8-29': { period: true, symptoms: [], mood: 'Good', notes: '' },
-      '2026-8-30': { period: true, symptoms: [], mood: 'Good', notes: '' },
-      '2026-8-31': { period: true, symptoms: ['Bloating'], mood: 'Okay', notes: '' },
-    },
+    recentActivity: [],
+    notifications: [],
+    notes: [],
+    loggedDays: {},
   };
 
-  /* -------------------------------------------------------------------------
-     STORAGE — thin localStorage wrapper. These are the seams that get
-     swapped for real Supabase reads/writes in Step 3.
-     ------------------------------------------------------------------------- */
   const PREFIX = 'lunatrack:';
   const storage = {
     get(key, fallback) {
@@ -131,94 +84,38 @@ const LunaApp = (() => {
     },
   };
 
-  /* -------------------------------------------------------------------------
-     CYCLE SETUP — the user-editable source of truth for cycle math.
-     Right now this lives in localStorage under 'cycle-setup'. When real
-     accounts exist (Step 3), getCycleSetup/saveCycleSetup are the exact
-     seam to swap for a Supabase profile read/write — everything else in
-     the app (dashboard, calendar, onboarding) only ever talks to these
-     two functions and computeCycleInfo(), never to localStorage directly.
-     ------------------------------------------------------------------------- */
-  const TODAY = new Date(2026, 8, 9); // Fixed reference "today" (Sep 9, 2026) so mock data stays consistent.
+  const TODAY = new Date();
+  TODAY.setHours(0, 0, 0, 0);
   const MS_DAY = 86400000;
-  const DEFAULT_CYCLE_SETUP = { lastPeriodStart: '2026-08-27', cycleLength: 28, periodLength: 5 };
 
-  function getCycleSetup() {
-    return storage.get('cycle-setup', DEFAULT_CYCLE_SETUP);
+  function isoDate(d) {
+    const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), day = String(d.getDate()).padStart(2, '0');
+    return y + '-' + m + '-' + day;
   }
-
-  function saveCycleSetup(setup) {
-    storage.set('cycle-setup', setup);
-    storage.set('onboarding-complete', true);
-
-    if (LunaSupabase && LunaSupabase.isConfigured) {
-      LunaAuth.getUser().then((user) => {
-        if (!user) return;
-        LunaSupabase.client.from('cycle_setups').upsert({
-          user_id: user.id,
-          last_period_start: setup.lastPeriodStart,
-          cycle_length: setup.cycleLength,
-          period_length: setup.periodLength,
-          updated_at: new Date().toISOString(),
-        }).then(({ error }) => {
-          if (error) console.warn('LunaTrack: failed to save cycle setup to Supabase.', error.message);
-        });
-      });
-    }
+  function dateFromISO(iso) {
+    const parts = iso.split('-').map(Number);
+    return new Date(parts[0], parts[1] - 1, parts[2]);
   }
-
-  /**
-   * Pulls the signed-in user's cycle setup from Supabase into the local
-   * cache, so the existing synchronous getCycleSetup() reads (dashboard,
-   * calendar, onboarding — all already rendered by the time this async
-   * call resolves) see the real data. If the cloud copy differs from
-   * what's cached locally (e.g. first time on a new device), it updates
-   * the cache and reloads once — guarded by sessionStorage so a slow or
-   * failing network can't cause a reload loop. No-ops instantly in demo
-   * mode or once the cache is already in sync.
-   */
-  async function syncCycleSetupFromCloud() {
-    if (!LunaSupabase || !LunaSupabase.isConfigured) return;
-    const user = await LunaAuth.getUser();
-    if (!user) return;
-
-    const { data: rows, error } = await LunaSupabase.client
-      .from('cycle_setups')
-      .select('last_period_start, cycle_length, period_length')
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    if (error) {
-      console.warn('LunaTrack: failed to load cycle setup from Supabase.', error.message);
-      return;
-    }
-    if (!rows) return; // brand-new account — let onboarding handle it locally, same as demo mode
-
-    const existing = storage.get('cycle-setup', null);
-    const matches = existing
-      && existing.lastPeriodStart === rows.last_period_start
-      && existing.cycleLength === rows.cycle_length
-      && existing.periodLength === rows.period_length;
-    if (matches) return;
-
-    storage.set('cycle-setup', {
-      lastPeriodStart: rows.last_period_start,
-      cycleLength: rows.cycle_length,
-      periodLength: rows.period_length,
-    });
-    storage.set('onboarding-complete', true);
-
-    if (!sessionStorage.getItem('lunatrack_cloud_sync_reloaded')) {
-      sessionStorage.setItem('lunatrack_cloud_sync_reloaded', '1');
-      window.location.reload();
-    }
-  }
-
   function fmtShort(d) { return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); }
+  function dateKey(y, m, d) { return y + '-' + (m + 1) + '-' + d; }
 
-  /** Derives every date/label the app needs from a { lastPeriodStart, cycleLength, periodLength } setup. */
+  function relativeTime(iso) {
+    const then = new Date(iso);
+    const diffMs = Date.now() - then.getTime();
+    const mins = Math.floor(diffMs / 60000);
+    if (mins < 1) return 'Just now';
+    if (mins < 60) return mins + 'm ago';
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return hours + 'h ago';
+    const days = Math.floor(hours / 24);
+    if (days < 7) return days + 'd ago';
+    return fmtShort(then);
+  }
+
+  const DEFAULT_CYCLE_SETUP = { cycleLength: 28, periodLength: 5 };
+
   function computeCycleInfo(setup) {
-    const lastStart = new Date(setup.lastPeriodStart + 'T00:00:00');
+    const lastStart = dateFromISO(setup.lastPeriodStart);
     const cycleLength = Number(setup.cycleLength) || DEFAULT_CYCLE_SETUP.cycleLength;
     const periodLength = Number(setup.periodLength) || DEFAULT_CYCLE_SETUP.periodLength;
 
@@ -235,7 +132,6 @@ const LunaApp = (() => {
     nextPeriodEndDate.setDate(nextPeriodStartDate.getDate() + periodLength - 1);
     const daysUntilNext = Math.round((nextPeriodStartDate - TODAY) / MS_DAY);
 
-    // Ovulation is estimated via a ~14-day luteal phase, never earlier than a few days after the period ends.
     const ovulationDay = Math.max(periodLength + 3, cycleLength - 14);
     const ovulationDate = new Date(currentCycleStart);
     ovulationDate.setDate(currentCycleStart.getDate() + ovulationDay - 1);
@@ -248,13 +144,14 @@ const LunaApp = (() => {
     nextFertileStartDate.setDate(nextOvulationDate.getDate() - 5);
 
     return {
-      day, cycleLength, periodLength,
+      hasSetup: true,
+      day: day, cycleLength: cycleLength, periodLength: periodLength,
       startDate: fmtShort(currentCycleStart),
       nextPeriodDate: fmtShort(nextPeriodStartDate),
-      daysUntilNext,
-      ovulationDay,
+      daysUntilNext: daysUntilNext,
+      ovulationDay: ovulationDay,
       ovulationDate: fmtShort(ovulationDate),
-      fertileWindowLabel: `${fmtShort(fertileStartDate)} – ${fmtShort(ovulationDate)}`,
+      fertileWindowLabel: fmtShort(fertileStartDate) + ' \u2013 ' + fmtShort(ovulationDate),
       dates: {
         cycleStart: currentCycleStart,
         nextPeriodStart: nextPeriodStartDate,
@@ -267,15 +164,278 @@ const LunaApp = (() => {
     };
   }
 
-  function getCycleDates() { return computeCycleInfo(getCycleSetup()).dates; }
+  function getCycleDates() {
+    if (!data.currentCycle.hasSetup) return null;
+    const raw = storage.get('cycle-setup-raw', null);
+    if (!raw) return null;
+    return computeCycleInfo(raw).dates;
+  }
 
-  // Populate data.currentCycle from the saved (or default) setup so every page — without
-  // any extra wiring — reads live, edit-aware values the moment LunaApp is available.
-  Object.assign(data.currentCycle, computeCycleInfo(getCycleSetup()));
+  async function saveCycleSetup(setup) {
+    const user = await LunaAuth.getUser();
+    if (!user) return { error: 'Not signed in.' };
+    const { error } = await LunaSupabase.client.from('cycle_setups').upsert({
+      user_id: user.id,
+      last_period_start: setup.lastPeriodStart,
+      cycle_length: setup.cycleLength,
+      period_length: setup.periodLength,
+      updated_at: new Date().toISOString(),
+    });
+    if (error) return { error: error.message };
+    storage.set('cycle-setup-raw', setup);
+    Object.assign(data.currentCycle, computeCycleInfo(setup));
+    return {};
+  }
 
-  /* -------------------------------------------------------------------------
-     TOAST SYSTEM
-     ------------------------------------------------------------------------- */
+  async function getCycleSetupRaw() {
+    const user = await LunaAuth.getUser();
+    if (!user) return null;
+    const { data: row, error } = await LunaSupabase.client
+      .from('cycle_setups').select('last_period_start, cycle_length, period_length')
+      .eq('user_id', user.id).maybeSingle();
+    if (error || !row) return null;
+    const setup = { lastPeriodStart: row.last_period_start, cycleLength: row.cycle_length, periodLength: row.period_length };
+    storage.set('cycle-setup-raw', setup);
+    return setup;
+  }
+
+  function deriveCyclesFromLogs(logsRows) {
+    const periodDates = (logsRows || [])
+      .filter(function (l) { return l.period_flow && l.period_flow !== 'Not started'; })
+      .map(function (l) { return l.log_date; })
+      .sort();
+    if (!periodDates.length) return [];
+
+    const runs = [];
+    let run = [periodDates[0]];
+    for (let i = 1; i < periodDates.length; i++) {
+      const prev = dateFromISO(run[run.length - 1]);
+      const cur = dateFromISO(periodDates[i]);
+      const gap = Math.round((cur - prev) / MS_DAY);
+      if (gap <= 2) run.push(periodDates[i]);
+      else { runs.push(run); run = [periodDates[i]]; }
+    }
+    runs.push(run);
+
+    const cycles = runs.map(function (r) {
+      const start = r[0], end = r[r.length - 1];
+      const periodLength = Math.round((dateFromISO(end) - dateFromISO(start)) / MS_DAY) + 1;
+      return { start: start, end: end, periodLength: periodLength, cycleLength: null };
+    });
+
+    for (let i = 0; i < cycles.length - 1; i++) {
+      cycles[i].cycleLength = Math.round((dateFromISO(cycles[i + 1].start) - dateFromISO(cycles[i].start)) / MS_DAY);
+    }
+
+    return cycles.reverse();
+  }
+
+  function computeInsightsFromCycles(cycles, logsRows) {
+    const completed = cycles.filter(function (c) { return c.cycleLength; });
+    const lengths = completed.map(function (c) { return c.cycleLength; });
+    const periodLengths = cycles.map(function (c) { return c.periodLength; });
+
+    const symptomCounts = {};
+    (logsRows || []).forEach(function (l) {
+      (l.symptoms || []).forEach(function (s) { symptomCounts[s] = (symptomCounts[s] || 0) + 1; });
+    });
+    const symptomFrequency = Object.entries(symptomCounts)
+      .sort(function (a, b) { return b[1] - a[1]; })
+      .map(function (e) { return { name: e[0], count: e[1] }; });
+
+    return {
+      hasEnoughData: lengths.length >= 2,
+      avgCycleLength: lengths.length ? Math.round(lengths.reduce(function (a, b) { return a + b; }, 0) / lengths.length) : null,
+      avgPeriodLength: periodLengths.length ? Math.round(periodLengths.reduce(function (a, b) { return a + b; }, 0) / periodLengths.length) : null,
+      shortestCycle: lengths.length ? Math.min.apply(null, lengths) : null,
+      longestCycle: lengths.length ? Math.max.apply(null, lengths) : null,
+      variationDays: lengths.length > 1 ? Math.round((Math.max.apply(null, lengths) - Math.min.apply(null, lengths)) / 2) : null,
+      cyclesLogged: lengths.length,
+      recentCycleLengths: lengths.slice(0, 6).reverse(),
+      recentPeriodLengths: periodLengths.slice(0, 6).reverse(),
+      symptomFrequency: symptomFrequency,
+    };
+  }
+
+  async function loadTodayLog() {
+    const user = await LunaAuth.getUser();
+    if (!user) return null;
+    const { data: row, error } = await LunaSupabase.client
+      .from('daily_logs').select('*').eq('user_id', user.id).eq('log_date', isoDate(TODAY)).maybeSingle();
+    if (error) { console.warn('LunaTrack: failed to load today\'s log.', error.message); return null; }
+    return row;
+  }
+
+  async function saveDailyLog(entry, logDateIso) {
+    const user = await LunaAuth.getUser();
+    if (!user) return { error: 'Not signed in.' };
+    const logDate = logDateIso || isoDate(TODAY);
+    const { data: row, error } = await LunaSupabase.client
+      .from('daily_logs')
+      .upsert({
+        user_id: user.id,
+        log_date: logDate,
+        period_flow: entry.period || null,
+        symptoms: entry.symptoms || [],
+        mood: entry.mood || null,
+        energy: entry.energy || null,
+        sleep: entry.sleep || null,
+        notes: entry.notes || null,
+      }, { onConflict: 'user_id,log_date' })
+      .select().single();
+    if (error) return { error: error.message };
+    addNotification('Your log for ' + fmtShort(dateFromISO(logDate)) + ' was saved.');
+    return { log: row };
+  }
+
+  async function loadNotes() {
+    const user = await LunaAuth.getUser();
+    if (!user) return [];
+    const { data: rows, error } = await LunaSupabase.client
+      .from('notes').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(50);
+    if (error) { console.warn('LunaTrack: failed to load notes.', error.message); return []; }
+    return rows || [];
+  }
+
+  async function addNote(content) {
+    const trimmed = (content || '').trim();
+    if (!trimmed) return { error: 'Write something before saving.' };
+    const user = await LunaAuth.getUser();
+    if (!user) return { error: 'Not signed in.' };
+    const { data: row, error } = await LunaSupabase.client
+      .from('notes').insert({ user_id: user.id, content: trimmed, note_date: isoDate(TODAY) }).select().single();
+    if (error) return { error: error.message };
+    data.notes.unshift(row);
+    addNotification('Note added.');
+    return { note: row };
+  }
+
+  async function deleteNote(id) {
+    const user = await LunaAuth.getUser();
+    if (!user) return { error: 'Not signed in.' };
+    const { error } = await LunaSupabase.client.from('notes').delete().eq('id', id).eq('user_id', user.id);
+    if (!error) data.notes = data.notes.filter(function (n) { return n.id !== id; });
+    return { error: error && error.message };
+  }
+
+  async function loadNotifications() {
+    const user = await LunaAuth.getUser();
+    if (!user) return [];
+    const { data: rows, error } = await LunaSupabase.client
+      .from('notifications').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(30);
+    if (error) { console.warn('LunaTrack: failed to load notifications.', error.message); return []; }
+    return (rows || []).map(function (n) { return { id: n.id, text: n.body, time: relativeTime(n.created_at), read: n.read }; });
+  }
+
+  function addNotification(body) {
+    LunaAuth.getUser().then(function (user) {
+      if (!user) return;
+      LunaSupabase.client.from('notifications').insert({ user_id: user.id, body: body }).then(function (res) {
+        if (res.error) console.warn('LunaTrack: failed to create notification.', res.error.message);
+      });
+    });
+  }
+
+  async function markAllNotificationsRead() {
+    const user = await LunaAuth.getUser();
+    if (!user) return;
+    await LunaSupabase.client.from('notifications').update({ read: true }).eq('user_id', user.id).eq('read', false);
+    data.notifications.forEach(function (n) { n.read = true; });
+  }
+
+  async function saveProfileName(name) {
+    const trimmed = (name || '').trim();
+    if (!trimmed) return { error: "Name can't be empty." };
+    const user = await LunaAuth.getUser();
+    if (!user) return { error: 'Not signed in.' };
+    const { error } = await LunaSupabase.client.from('profiles')
+      .update({ name: trimmed, updated_at: new Date().toISOString() }).eq('id', user.id);
+    if (error) return { error: error.message };
+    data.user.name = trimmed;
+    data.user.initials = trimmed[0].toUpperCase();
+    return {};
+  }
+
+  async function uploadAvatar(file) {
+    const user = await LunaAuth.getUser();
+    if (!user) return { error: 'Not signed in.' };
+    if (!file.type.startsWith('image/')) return { error: 'Please choose an image file.' };
+    if (file.size > 4 * 1024 * 1024) return { error: 'Please choose an image under 4MB.' };
+
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    const path = user.id + '/avatar.' + ext;
+
+    const { error: upErr } = await LunaSupabase.client.storage.from('avatars').upload(path, file, { upsert: true, cacheControl: '3600' });
+    if (upErr) return { error: upErr.message };
+
+    const { data: pub } = LunaSupabase.client.storage.from('avatars').getPublicUrl(path);
+    const avatarUrl = pub.publicUrl + '?v=' + Date.now();
+
+    const { error: updErr } = await LunaSupabase.client.from('profiles').update({ avatar_url: avatarUrl }).eq('id', user.id);
+    if (updErr) return { error: updErr.message };
+
+    data.user.avatarUrl = avatarUrl;
+    return { url: avatarUrl };
+  }
+
+  async function loadUserData() {
+    if (!LunaSupabase.isConfigured) return false;
+    const user = await LunaAuth.getUser();
+    if (!user) return false;
+
+    data.user.id = user.id;
+    data.user.email = user.email || '';
+
+    const results = await Promise.all([
+      LunaSupabase.client.from('profiles').select('name, avatar_url, member_since').eq('id', user.id).maybeSingle(),
+      LunaSupabase.client.from('cycle_setups').select('last_period_start, cycle_length, period_length').eq('user_id', user.id).maybeSingle(),
+      LunaSupabase.client.from('daily_logs').select('*').eq('user_id', user.id).order('log_date', { ascending: false }).limit(200),
+      LunaSupabase.client.from('notes').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(50),
+      LunaSupabase.client.from('notifications').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(30),
+    ]);
+    const profile = results[0].data;
+    const setupRow = results[1].data;
+    const logsRows = results[2].data;
+    const notesRows = results[3].data;
+    const notifRows = results[4].data;
+
+    const fallbackName = user.email ? user.email.split('@')[0] : 'there';
+    data.user.name = (profile && profile.name) || fallbackName;
+    data.user.initials = (data.user.name || '?').trim()[0].toUpperCase();
+    data.user.avatarUrl = profile && profile.avatar_url;
+    data.user.memberSince = profile && profile.member_since ? fmtShort(new Date(profile.member_since)) : '';
+
+    if (setupRow) {
+      const raw = { lastPeriodStart: setupRow.last_period_start, cycleLength: setupRow.cycle_length, periodLength: setupRow.period_length };
+      storage.set('cycle-setup-raw', raw);
+      Object.assign(data.currentCycle, computeCycleInfo(raw));
+    }
+
+    data.loggedDays = {};
+    (logsRows || []).forEach(function (row) {
+      const d = dateFromISO(row.log_date);
+      data.loggedDays[dateKey(d.getFullYear(), d.getMonth(), d.getDate())] = {
+        period: Boolean(row.period_flow && row.period_flow !== 'Not started'),
+        symptoms: row.symptoms || [],
+        mood: row.mood, energy: row.energy, sleep: row.sleep, notes: row.notes || '',
+      };
+    });
+
+    data.cycles = deriveCyclesFromLogs(logsRows);
+    data.insights = computeInsightsFromCycles(data.cycles, logsRows);
+
+    data.notes = notesRows || [];
+
+    data.notifications = (notifRows || []).map(function (n) { return { id: n.id, text: n.body, time: relativeTime(n.created_at), read: n.read }; });
+
+    const activity = [];
+    (logsRows || []).slice(0, 4).forEach(function (l) { activity.push({ when: fmtShort(dateFromISO(l.log_date)), text: 'Log saved' }); });
+    (notesRows || []).slice(0, 2).forEach(function (n) { activity.push({ when: fmtShort(new Date(n.created_at)), text: 'Note added' }); });
+    data.recentActivity = activity.slice(0, 6);
+
+    return true;
+  }
+
   function showToast(message, opts) {
     opts = opts || {};
     const stack = document.getElementById('toastStack');
@@ -283,19 +443,16 @@ const LunaApp = (() => {
     const toast = document.createElement('div');
     toast.className = 'toast';
     toast.setAttribute('role', 'status');
-    toast.innerHTML = `${icon('check', 16)}<span></span>`;
+    toast.innerHTML = icon('check', 16) + '<span></span>';
     toast.querySelector('span').textContent = message;
     stack.appendChild(toast);
-    requestAnimationFrame(() => toast.classList.add('is-visible'));
-    setTimeout(() => {
+    requestAnimationFrame(function () { toast.classList.add('is-visible'); });
+    setTimeout(function () {
       toast.classList.remove('is-visible');
-      setTimeout(() => toast.remove(), 400);
+      setTimeout(function () { toast.remove(); }, 400);
     }, opts.duration || 3000);
   }
 
-  /* -------------------------------------------------------------------------
-     THEME
-     ------------------------------------------------------------------------- */
   function applyTheme(pref) {
     const root = document.documentElement;
     const resolved = pref === 'system'
@@ -316,9 +473,6 @@ const LunaApp = (() => {
     return pref;
   }
 
-  /* -------------------------------------------------------------------------
-     MODALS
-     ------------------------------------------------------------------------- */
   function openModal(id) {
     const backdrop = document.getElementById(id);
     if (!backdrop) return;
@@ -336,165 +490,138 @@ const LunaApp = (() => {
   }
 
   function initModals() {
-    document.querySelectorAll('.modal-backdrop').forEach((backdrop) => {
-      backdrop.addEventListener('click', (e) => {
+    document.querySelectorAll('.modal-backdrop').forEach(function (backdrop) {
+      backdrop.addEventListener('click', function (e) {
         if (e.target === backdrop) closeModal(backdrop);
       });
     });
-    document.querySelectorAll('[data-close-modal]').forEach((btn) => {
-      btn.addEventListener('click', () => closeModal(btn));
+    document.querySelectorAll('[data-close-modal]').forEach(function (btn) {
+      btn.addEventListener('click', function () { closeModal(btn); });
     });
-    document.querySelectorAll('[data-open-modal]').forEach((btn) => {
-      btn.addEventListener('click', () => openModal(btn.getAttribute('data-open-modal')));
+    document.querySelectorAll('[data-open-modal]').forEach(function (btn) {
+      btn.addEventListener('click', function () { openModal(btn.getAttribute('data-open-modal')); });
     });
-    window.addEventListener('keydown', (e) => {
+    window.addEventListener('keydown', function (e) {
       if (e.key !== 'Escape') return;
-      document.querySelectorAll('.modal-backdrop.is-open').forEach((b) => closeModal(b));
+      document.querySelectorAll('.modal-backdrop.is-open').forEach(function (b) { closeModal(b); });
     });
   }
 
-  /* -------------------------------------------------------------------------
-     NAVIGATION DATA
-     ------------------------------------------------------------------------- */
   const NAV_ITEMS = [
     { id: 'dashboard', label: 'Dashboard', href: 'dashboard.html', iconName: 'home' },
     { id: 'calendar', label: 'Calendar', href: 'calendar.html', iconName: 'calendar' },
     { id: 'log', label: 'Log Today', href: 'log.html', iconName: 'edit' },
     { id: 'insights', label: 'Insights', href: 'insights.html', iconName: 'chart' },
     { id: 'history', label: 'History', href: 'history.html', iconName: 'clock' },
+    { id: 'learn', label: 'Learn', href: 'learn.html', iconName: 'book' },
     { id: 'ai-chat', label: 'AI Chat', href: 'ai-chat.html', iconName: 'chat', badge: 'Beta' },
   ];
 
   const BOTTOM_NAV_ITEMS = [
     { id: 'dashboard', label: 'Home', href: 'dashboard.html', iconName: 'home' },
     { id: 'calendar', label: 'Calendar', href: 'calendar.html', iconName: 'calendar' },
-    { id: 'log', label: 'Log', href: 'log.html', iconName: 'edit', isLog: true },
+    { id: 'log', label: 'Log', href: 'log.html', iconName: 'plus', isLog: true },
     { id: 'insights', label: 'Insights', href: 'insights.html', iconName: 'chart' },
     { id: 'settings', label: 'Profile', href: 'settings.html', iconName: 'user' },
   ];
 
   function navLinkHTML(item, active, extraClass) {
     const cls = ['sidebar-link', active ? 'is-active' : '', extraClass || ''].join(' ').trim();
-    const badge = item.badge ? `<span class="nav-soon-badge">${item.badge}</span>` : '';
-    return `<a class="${cls}" href="${item.href}">${icon(item.iconName, 19)}<span>${item.label}</span>${badge}</a>`;
+    const badge = item.badge ? '<span class="nav-soon-badge">' + item.badge + '</span>' : '';
+    return '<a class="' + cls + '" href="' + item.href + '">' + icon(item.iconName, 19) + '<span>' + item.label + '</span>' + badge + '</a>';
   }
 
-  /* -------------------------------------------------------------------------
-     SHELL RENDERING
-     ------------------------------------------------------------------------- */
+  function avatarHTML(size) {
+    if (data.user.avatarUrl) {
+      return '<img src="' + data.user.avatarUrl + '" alt="' + data.user.name + '" class="avatar avatar-img" style="width:' + size + 'px;height:' + size + 'px;">';
+    }
+    return '<span class="avatar" style="width:' + size + 'px;height:' + size + 'px;">' + data.user.initials + '</span>';
+  }
+
   function renderSidebar(activePage) {
     const el = document.getElementById('sidebarRoot');
     if (!el) return;
-    const links = NAV_ITEMS.map((item) => navLinkHTML(item, item.id === activePage)).join('');
-    el.innerHTML = `
-      <aside class="app-sidebar">
-        <button class="sidebar-collapse-btn" id="sidebarCollapseBtn" aria-label="Collapse sidebar">${icon('chevronRight', 13)}</button>
-        <a class="brand" href="dashboard.html">
-          <span class="brand-mark" style="display:inline-flex;vertical-align:-6px;margin-right:6px;">${icon('moon', 24)}</span><span class="brand-text">LunaTrack</span>
-        </a>
-        <nav class="sidebar-nav" aria-label="Primary">${links}</nav>
-        <div class="sidebar-foot">
-          ${navLinkHTML({ id: 'settings', label: 'Settings', href: 'settings.html', iconName: 'settings' }, activePage === 'settings')}
-          <a class="sidebar-link" href="#" id="helpLink">${icon('help', 19)}<span>Help</span></a>
-          <a class="sidebar-profile" href="settings.html">
-            <span class="avatar">${data.user.initials}</span>
-            <span class="who"><span class="name">${data.user.name}</span><span class="role">${data.user.email}</span></span>
-          </a>
-        </div>
-      </aside>`;
+    const links = NAV_ITEMS.map(function (item) { return navLinkHTML(item, item.id === activePage); }).join('');
+    el.innerHTML = ''
+      + '<aside class="app-sidebar">'
+      + '<button class="sidebar-collapse-btn" id="sidebarCollapseBtn" aria-label="Collapse sidebar">' + icon('chevronRight', 13) + '</button>'
+      + '<a class="brand" href="dashboard.html"><span class="brand-mark" style="display:inline-flex;vertical-align:-6px;margin-right:6px;">' + icon('moon', 24) + '</span><span class="brand-text">LunaTrack</span></a>'
+      + '<nav class="sidebar-nav" aria-label="Primary">' + links + '</nav>'
+      + '<div class="sidebar-foot">'
+      + navLinkHTML({ id: 'settings', label: 'Settings', href: 'settings.html', iconName: 'settings' }, activePage === 'settings')
+      + '<a class="sidebar-link" href="help.html">' + icon('help', 19) + '<span>Help</span></a>'
+      + '<a class="sidebar-profile" href="settings.html">' + avatarHTML(34) + '<span class="who"><span class="name">' + (data.user.name || 'Your account') + '</span><span class="role">' + data.user.email + '</span></span></a>'
+      + '</div></aside>';
   }
 
   function renderMobileTopbar(pageTitle) {
     const el = document.getElementById('mobileTopbarRoot');
     if (!el) return;
-    el.innerHTML = `
-      <header class="mobile-topbar">
-        <button class="icon-btn" id="drawerToggle" aria-label="Open menu" aria-expanded="false" aria-controls="appDrawer" style="background:transparent;border-color:transparent;">${icon('menu', 20)}</button>
-        <a class="brand" href="dashboard.html">${pageTitle || 'LunaTrack'}</a>
-        <div class="dropdown-anchor">
-          <button class="icon-btn" id="mobileNotifToggle" aria-label="Notifications" style="background:transparent;border-color:transparent;">${icon('bell', 19)}<span class="notif-dot" id="mobileNotifDot" hidden></span></button>
-        </div>
-      </header>`;
+    el.innerHTML = ''
+      + '<header class="mobile-topbar">'
+      + '<button class="icon-btn" id="drawerToggle" aria-label="Open menu" aria-expanded="false" aria-controls="appDrawer" style="background:transparent;border-color:transparent;">' + icon('menu', 20) + '</button>'
+      + '<a class="brand" href="dashboard.html">' + (pageTitle || 'LunaTrack') + '</a>'
+      + '<div class="dropdown-anchor"><button class="icon-btn" id="mobileNotifToggle" aria-label="Notifications" style="background:transparent;border-color:transparent;">' + icon('bell', 19) + '<span class="notif-dot" id="mobileNotifDot" hidden></span></button></div>'
+      + '</header>';
   }
 
   function renderDrawer(activePage) {
     const el = document.getElementById('drawerRoot');
     if (!el) return;
-    const links = NAV_ITEMS.map((item) => navLinkHTML(item, item.id === activePage)).join('');
-    el.innerHTML = `
-      <div class="drawer-overlay" id="drawerOverlay"></div>
-      <div class="app-drawer" id="appDrawer">
-        <a class="brand" href="dashboard.html">LunaTrack</a>
-        <nav class="sidebar-nav" aria-label="Primary">${links}</nav>
-        <div class="sidebar-foot">
-          ${navLinkHTML({ id: 'settings', label: 'Settings', href: 'settings.html', iconName: 'settings' }, activePage === 'settings')}
-          <a class="sidebar-link" href="#" id="helpLinkDrawer">${icon('help', 19)}<span>Help</span></a>
-        </div>
-      </div>`;
+    const links = NAV_ITEMS.map(function (item) { return navLinkHTML(item, item.id === activePage); }).join('');
+    el.innerHTML = ''
+      + '<div class="drawer-overlay" id="drawerOverlay"></div>'
+      + '<div class="app-drawer" id="appDrawer">'
+      + '<a class="brand" href="dashboard.html">LunaTrack</a>'
+      + '<nav class="sidebar-nav" aria-label="Primary">' + links + '</nav>'
+      + '<div class="sidebar-foot">'
+      + navLinkHTML({ id: 'settings', label: 'Settings', href: 'settings.html', iconName: 'settings' }, activePage === 'settings')
+      + '<a class="sidebar-link" href="help.html">' + icon('help', 19) + '<span>Help</span></a>'
+      + '</div></div>';
   }
 
   function renderBottomNav(activePage) {
     const el = document.getElementById('bottomNavRoot');
     if (!el) return;
-    const items = BOTTOM_NAV_ITEMS.map((item) => {
+    const items = BOTTOM_NAV_ITEMS.map(function (item) {
       const active = item.id === activePage;
       if (item.isLog) {
-        return `<a class="bottom-nav-link is-log ${active ? 'is-active' : ''}" href="${item.href}">
-          <span class="bottom-nav-log-btn">${icon('edit', 17)}</span><span>${item.label}</span>
-        </a>`;
+        return '<a class="bottom-nav-link is-log ' + (active ? 'is-active' : '') + '" href="' + item.href + '" aria-label="Log today"><span class="bottom-nav-log-btn">' + icon('plus', 22) + '</span></a>';
       }
-      return `<a class="bottom-nav-link ${active ? 'is-active' : ''}" href="${item.href}">${icon(item.iconName, 20)}<span>${item.label}</span></a>`;
+      return '<a class="bottom-nav-link ' + (active ? 'is-active' : '') + '" href="' + item.href + '">' + icon(item.iconName, 21) + '<span>' + item.label + '</span></a>';
     }).join('');
-    el.innerHTML = `<nav class="bottom-nav"><div class="bottom-nav-list">${items}</div></nav>`;
+    el.innerHTML = '<nav class="bottom-nav"><div class="bottom-nav-list">' + items + '</div></nav>';
   }
 
   function renderTopbarActions() {
     const el = document.getElementById('topbarActions');
     if (!el) return;
-    el.innerHTML = `
-      <div class="dropdown-anchor">
-        <button class="icon-btn" id="notifToggle" aria-label="Notifications" aria-haspopup="true">
-          ${icon('bell', 18)}<span class="notif-dot" id="notifDot" hidden></span>
-        </button>
-        <div class="notif-panel" id="notifPanel" role="menu"></div>
-      </div>
-      <a href="settings.html" class="avatar" title="${data.user.name}">${data.user.initials}</a>`;
-  }
-
-  /* -------------------------------------------------------------------------
-     NOTIFICATIONS
-     ------------------------------------------------------------------------- */
-  function getNotifications() {
-    const readIds = storage.get('notif-read', []);
-    return data.notifications.map((n) => ({ ...n, read: n.read || readIds.includes(n.id) }));
+    el.innerHTML = ''
+      + '<div class="dropdown-anchor"><button class="icon-btn" id="notifToggle" aria-label="Notifications" aria-haspopup="true">' + icon('bell', 18) + '<span class="notif-dot" id="notifDot" hidden></span></button><div class="notif-panel" id="notifPanel" role="menu"></div></div>'
+      + '<a href="settings.html" title="' + data.user.name + '">' + avatarHTML(36) + '</a>';
   }
 
   function renderNotifPanel() {
     const panel = document.getElementById('notifPanel');
-    const notifs = getNotifications();
-    const unread = notifs.filter((n) => !n.read).length;
+    const unread = data.notifications.filter(function (n) { return !n.read; }).length;
 
-    [document.getElementById('notifDot'), document.getElementById('mobileNotifDot')].forEach((dot) => {
+    [document.getElementById('notifDot'), document.getElementById('mobileNotifDot')].forEach(function (dot) {
       if (dot) dot.hidden = unread === 0;
     });
 
     if (!panel) return;
-    const list = notifs.length
-      ? notifs.map((n) => `
-          <div class="notif-item ${n.read ? 'is-read' : ''}">
-            <span class="dot"></span>
-            <div><p>${n.text}</p><time>${n.time}</time></div>
-          </div>`).join('')
-      : `<div class="notif-empty">You're all caught up.</div>`;
+    const list = data.notifications.length
+      ? data.notifications.map(function (n) {
+          return '<div class="notif-item ' + (n.read ? 'is-read' : '') + '"><span class="dot"></span><div><p>' + n.text + '</p><time>' + n.time + '</time></div></div>';
+        }).join('')
+      : '<div class="notif-empty">You\'re all caught up.</div>';
 
-    panel.innerHTML = `
-      <div class="notif-head"><h3>Notifications</h3><button id="notifClearAll">Clear all</button></div>
-      <div class="notif-list">${list}</div>`;
+    panel.innerHTML = '<div class="notif-head"><h3>Notifications</h3><button id="notifClearAll">Mark all read</button></div><div class="notif-list">' + list + '</div>';
 
     const clearBtn = document.getElementById('notifClearAll');
     if (clearBtn) {
-      clearBtn.addEventListener('click', () => {
-        storage.set('notif-read', data.notifications.map((n) => n.id));
+      clearBtn.addEventListener('click', async function () {
+        await markAllNotificationsRead();
         renderNotifPanel();
       });
     }
@@ -505,36 +632,29 @@ const LunaApp = (() => {
     const panel = document.getElementById('notifPanel');
     const toggle = document.getElementById('notifToggle');
 
-    function markAllRead() {
-      const readIds = data.notifications.map((n) => n.id);
-      storage.set('notif-read', readIds);
-      renderNotifPanel();
-    }
-
     if (toggle && panel) {
-      toggle.addEventListener('click', (e) => {
+      toggle.addEventListener('click', function (e) {
         e.stopPropagation();
         const willOpen = !panel.classList.contains('is-open');
         panel.classList.toggle('is-open', willOpen);
-        if (willOpen) setTimeout(markAllRead, 1200);
+        if (willOpen) setTimeout(async function () { await markAllNotificationsRead(); renderNotifPanel(); }, 1200);
       });
-      document.addEventListener('click', (e) => {
+      document.addEventListener('click', function (e) {
         if (!panel.contains(e.target) && e.target !== toggle) panel.classList.remove('is-open');
       });
     }
 
     const mobileToggle = document.getElementById('mobileNotifToggle');
     if (mobileToggle) {
-      mobileToggle.addEventListener('click', () => {
-        showToast(`You have ${getNotifications().filter((n) => !n.read).length || 'no'} new notifications`);
-        setTimeout(markAllRead, 400);
+      mobileToggle.addEventListener('click', async function () {
+        const unread = data.notifications.filter(function (n) { return !n.read; }).length;
+        showToast(unread ? ('You have ' + unread + ' new notification' + (unread === 1 ? '' : 's')) : "You're all caught up");
+        await markAllNotificationsRead();
+        renderNotifPanel();
       });
     }
   }
 
-  /* -------------------------------------------------------------------------
-     MOBILE DRAWER WIRING
-     ------------------------------------------------------------------------- */
   function initDrawer() {
     const toggle = document.getElementById('drawerToggle');
     const drawer = document.getElementById('appDrawer');
@@ -553,26 +673,14 @@ const LunaApp = (() => {
       toggle.setAttribute('aria-expanded', 'true');
       document.body.style.overflow = 'hidden';
     }
-    toggle.addEventListener('click', () => {
+    toggle.addEventListener('click', function () {
       drawer.classList.contains('is-open') ? close() : open();
     });
     overlay.addEventListener('click', close);
-    window.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
-    drawer.querySelectorAll('a').forEach((a) => a.addEventListener('click', close));
+    window.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    drawer.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', close); });
   }
 
-  function initHelpLinks() {
-    document.querySelectorAll('#helpLink, #helpLinkDrawer').forEach((a) => {
-      a.addEventListener('click', (e) => {
-        e.preventDefault();
-        showToast('Help center is coming soon');
-      });
-    });
-  }
-
-  /* -------------------------------------------------------------------------
-     SIDEBAR COLLAPSE (desktop) — icon-only rail, persisted in localStorage.
-     ------------------------------------------------------------------------- */
   function initSidebarCollapse() {
     const btn = document.getElementById('sidebarCollapseBtn');
     const shell = document.querySelector('.app-shell');
@@ -585,56 +693,31 @@ const LunaApp = (() => {
 
     apply(storage.get('sidebar-collapsed', false));
 
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', function () {
       const next = !shell.classList.contains('is-sidebar-collapsed');
       apply(next);
       storage.set('sidebar-collapsed', next);
-      // Sidebar width changes the main column's width without firing a
-      // real window resize — nudge anything listening for resize (e.g.
-      // the insights charts) to re-measure once the transition settles.
-      setTimeout(() => window.dispatchEvent(new Event('resize')), 260);
+      setTimeout(function () { window.dispatchEvent(new Event('resize')); }, 260);
     });
   }
 
-  /* -------------------------------------------------------------------------
-     CYCLE SETUP MODAL — shared across every page. Used both for first-run
-     onboarding (a real login would trigger this once per new account) and
-     for later edits (dashboard's edit button, Settings > Cycle setup).
-     ------------------------------------------------------------------------- */
   function cycleSetupModalHTML() {
-    return `
-      <div class="modal-backdrop" id="modalCycleSetup">
-        <div class="modal-box">
-          <div class="modal-head">
-            <div>
-              <h3 id="csuTitle">Set up your cycle</h3>
-              <div class="card-sub" id="csuSubtitle">This helps LunaTrack estimate your next period and fertile window.</div>
-            </div>
-            <button class="modal-close" id="csuCloseBtn" data-close-modal aria-label="Close">${icon('x', 16)}</button>
-          </div>
-          <div class="form-field">
-            <label for="csuLastPeriod">First day of your last period</label>
-            <input type="date" id="csuLastPeriod">
-          </div>
-          <div class="form-field">
-            <label for="csuCycleLength">Average cycle length (days)</label>
-            <input type="number" id="csuCycleLength" min="21" max="40" inputmode="numeric">
-          </div>
-          <div class="form-field" style="margin-bottom:0">
-            <label for="csuPeriodLength">Average period length (days)</label>
-            <input type="number" id="csuPeriodLength" min="2" max="10" inputmode="numeric">
-          </div>
-          <p id="csuError" style="color:var(--c-burgundy);font-size:var(--fs-xs);display:none;margin-top:var(--sp-3)"></p>
-          <div class="modal-actions">
-            <button class="btn btn-secondary" id="csuSkipBtn" style="display:none">Skip for now</button>
-            <button class="btn btn-primary" id="csuSaveBtn">Save & Continue</button>
-          </div>
-        </div>
-      </div>`;
+    return ''
+      + '<div class="modal-backdrop" id="modalCycleSetup"><div class="modal-box">'
+      + '<div class="modal-head"><div><h3 id="csuTitle">Set up your cycle</h3><div class="card-sub" id="csuSubtitle">This helps LunaTrack estimate your next period and fertile window.</div></div>'
+      + '<button class="modal-close" id="csuCloseBtn" data-close-modal aria-label="Close">' + icon('x', 16) + '</button></div>'
+      + '<div class="form-field"><label for="csuLastPeriod">First day of your last period</label><input type="date" id="csuLastPeriod"></div>'
+      + '<div class="form-field"><label for="csuCycleLength">Average cycle length (days)</label><input type="number" id="csuCycleLength" min="21" max="40" inputmode="numeric"></div>'
+      + '<div class="form-field" style="margin-bottom:0"><label for="csuPeriodLength">Average period length (days)</label><input type="number" id="csuPeriodLength" min="2" max="10" inputmode="numeric"></div>'
+      + '<p id="csuError" style="color:var(--c-burgundy);font-size:var(--fs-xs);display:none;margin-top:var(--sp-3)"></p>'
+      + '<div class="modal-actions"><button class="btn btn-secondary" id="csuSkipBtn" style="display:none">Skip for now</button><button class="btn btn-primary" id="csuSaveBtn">Save & Continue</button></div>'
+      + '</div></div>';
   }
 
-  function openCycleSetupModal(mode) {
-    const setup = getCycleSetup();
+  async function openCycleSetupModal(mode) {
+    let setup = storage.get('cycle-setup-raw', null);
+    if (!setup) setup = await getCycleSetupRaw();
+    if (!setup) setup = { lastPeriodStart: isoDate(TODAY), cycleLength: 28, periodLength: 5 };
     document.getElementById('csuLastPeriod').value = setup.lastPeriodStart;
     document.getElementById('csuCycleLength').value = setup.cycleLength;
     document.getElementById('csuPeriodLength').value = setup.periodLength;
@@ -668,44 +751,32 @@ const LunaApp = (() => {
       el.style.display = 'block';
     }
 
-    document.getElementById('csuSaveBtn').addEventListener('click', () => {
+    document.getElementById('csuSaveBtn').addEventListener('click', async function () {
       const form = readForm();
-      if (!form.lastPeriodStart || !form.cycleLength || !form.periodLength) {
-        showError('Please fill in all three fields.'); return;
-      }
-      if (form.periodLength >= form.cycleLength) {
-        showError('Period length should be shorter than cycle length.'); return;
-      }
-      if (new Date(form.lastPeriodStart + 'T00:00:00') > TODAY) {
-        showError("That date is in the future — use your most recent period's start date."); return;
-      }
-      saveCycleSetup(form);
+      if (!form.lastPeriodStart || !form.cycleLength || !form.periodLength) { showError('Please fill in all three fields.'); return; }
+      if (form.periodLength >= form.cycleLength) { showError('Period length should be shorter than cycle length.'); return; }
+      if (dateFromISO(form.lastPeriodStart) > TODAY) { showError("That date is in the future \u2014 use your most recent period's start date."); return; }
+      const btn = document.getElementById('csuSaveBtn');
+      btn.disabled = true; btn.textContent = 'Saving\u2026';
+      const result = await saveCycleSetup(form);
+      btn.disabled = false; btn.textContent = 'Save & Continue';
+      if (result.error) { showError(result.error); return; }
       closeModal(document.getElementById('modalCycleSetup'));
       showToast('Cycle info saved');
-      // A full reload keeps every page's cycle math (dashboard, calendar,
-      // predictions) trivially consistent with the newly saved setup.
-      setTimeout(() => window.location.reload(), 500);
+      setTimeout(function () { window.location.reload(); }, 500);
     });
 
-    document.getElementById('csuSkipBtn').addEventListener('click', () => {
-      storage.set('onboarding-complete', true);
+    document.getElementById('csuSkipBtn').addEventListener('click', function () {
       closeModal(document.getElementById('modalCycleSetup'));
     });
   }
 
   function initOnboarding() {
     injectCycleSetupModal();
-    if (!storage.get('onboarding-complete', false)) {
-      // In a real, logged-in build this fires once per new account (no
-      // cycle-setup on file yet) rather than once per browser.
-      setTimeout(() => openCycleSetupModal('onboarding'), 450);
+    if (!data.currentCycle.hasSetup) {
+      setTimeout(function () { openCycleSetupModal('onboarding'); }, 450);
     }
   }
-
-  /* -------------------------------------------------------------------------
-     CALENDAR HELPERS — shared by dashboard preview + full calendar page
-     ------------------------------------------------------------------------- */
-  function dateKey(y, m, d) { return `${y}-${m + 1}-${d}`; }
 
   function buildMonthGrid(year, month) {
     const first = new Date(year, month, 1);
@@ -716,14 +787,9 @@ const LunaApp = (() => {
     for (let d = 1; d <= daysInMonth; d++) cells.push(d);
     while (cells.length % 7 !== 0) cells.push(null);
     const monthLabel = first.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-    return { cells, monthLabel, daysInMonth, year, month };
+    return { cells: cells, monthLabel: monthLabel, daysInMonth: daysInMonth, year: year, month: month };
   }
 
-  /**
-   * Labels which phase a given cycle day falls in — mirrors the phase
-   * language used on the landing page's cycle visual, kept consistent here.
-   * Estimated, not diagnostic.
-   */
   function cyclePhase(day, periodLength, ovulationDay) {
     if (day === null || day === undefined || day < 1) return null;
     if (day <= periodLength) return 'Period';
@@ -732,36 +798,46 @@ const LunaApp = (() => {
     return 'Luteal';
   }
 
-  /* -------------------------------------------------------------------------
-     SCROLL REVEAL — generic [data-reveal] animator, shared across app pages.
-     ------------------------------------------------------------------------- */
   function initScrollReveal(root) {
     const scope = root || document;
     const targets = scope.querySelectorAll('[data-reveal]');
     if (!targets.length) return;
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduced) { targets.forEach((el) => el.classList.add('is-revealed')); return; }
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
+    if (reduced) { targets.forEach(function (el) { el.classList.add('is-revealed'); }); return; }
+    const observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
         if (entry.isIntersecting) {
           entry.target.classList.add('is-revealed');
           observer.unobserve(entry.target);
         }
       });
     }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
-    targets.forEach((el) => observer.observe(el));
+    targets.forEach(function (el) { observer.observe(el); });
   }
 
-  /* -------------------------------------------------------------------------
-     BOOTSTRAP
-     ------------------------------------------------------------------------- */
+  function renderConfigGate() {
+    const main = document.getElementById('appMain') || document.body;
+    main.innerHTML = ''
+      + '<div class="app-main-inner" style="max-width:520px;padding-top:var(--sp-9)">'
+      + '<div class="app-card" style="text-align:center">'
+      + '<div class="edu-icon" style="margin:0 auto var(--sp-5);">' + icon('plug', 24) + '</div>'
+      + '<h2 style="font-family:var(--font-display);font-size:var(--fs-xl);margin-bottom:var(--sp-3)">Supabase isn\'t connected yet</h2>'
+      + '<p style="color:var(--c-ink-soft);font-size:var(--fs-sm)">LunaTrack needs a Supabase project to store your account and data. Add your project URL and anon key to <code>supabase-client.js</code>, run <code>supabase/schema.sql</code>, then reload.</p>'
+      + '<a href="index.html" class="btn btn-secondary" style="margin-top:var(--sp-6)">Back to home</a>'
+      + '</div></div>';
+  }
+
   async function init() {
+    if (typeof LunaSupabase === 'undefined' || !LunaSupabase.isConfigured) {
+      renderConfigGate();
+      return;
+    }
     if (typeof LunaAuth !== 'undefined') {
       const authed = await LunaAuth.requireAuth();
-      if (!authed) return; // requireAuth is already redirecting to login.html
+      if (!authed) return;
     }
 
-    await syncCycleSetupFromCloud();
+    await loadUserData();
 
     const page = document.body.dataset.page || '';
     const title = document.body.dataset.title || 'LunaTrack';
@@ -778,10 +854,11 @@ const LunaApp = (() => {
     initModals();
     initDrawer();
     initNotifications();
-    initHelpLinks();
     initSidebarCollapse();
     initScrollReveal();
     initOnboarding();
+
+    document.dispatchEvent(new CustomEvent('lunatrack:data-ready'));
   }
 
   if (document.readyState === 'loading') {
@@ -791,8 +868,13 @@ const LunaApp = (() => {
   }
 
   return {
-    data, storage, icon, showToast, openModal, closeModal, setTheme, initTheme, applyTheme,
-    dateKey, buildMonthGrid, TODAY, initScrollReveal, cyclePhase,
-    getCycleSetup, saveCycleSetup, getCycleDates, openCycleSetupModal,
+    data: data, storage: storage, icon: icon, showToast: showToast, openModal: openModal, closeModal: closeModal,
+    setTheme: setTheme, initTheme: initTheme, applyTheme: applyTheme,
+    dateKey: dateKey, buildMonthGrid: buildMonthGrid, dateFromISO: dateFromISO, isoDate: isoDate, fmtShort: fmtShort,
+    TODAY: TODAY, initScrollReveal: initScrollReveal, cyclePhase: cyclePhase,
+    getCycleDates: getCycleDates, openCycleSetupModal: openCycleSetupModal, saveCycleSetup: saveCycleSetup,
+    loadTodayLog: loadTodayLog, saveDailyLog: saveDailyLog, loadNotes: loadNotes, addNote: addNote, deleteNote: deleteNote,
+    loadNotifications: loadNotifications, markAllNotificationsRead: markAllNotificationsRead, addNotification: addNotification,
+    saveProfileName: saveProfileName, uploadAvatar: uploadAvatar, avatarHTML: avatarHTML, loadUserData: loadUserData,
   };
 })();

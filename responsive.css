@@ -57,36 +57,42 @@
 
 /* ---- 768px : mobile — single column, hamburger, stacked footer ---- */
 @media (max-width: 768px) {
-  :root { --nav-h: 68px; }
+  :root { --nav-h: 64px; }
   .container { padding: 0 var(--sp-5); }
 
-  .hero { padding-top: calc(var(--nav-h) + var(--sp-6)); }
-  .hero-copy h1 { font-size: 2.1rem; }
-  .hero-actions { flex-direction: column; align-items: stretch; }
-  .hero-actions .btn { width: 100%; }
+  .hero { padding-top: calc(var(--nav-h) + var(--sp-7)); padding-bottom: var(--sp-8); }
+  .hero-copy h1 { font-size: 2.05rem; letter-spacing: -0.01em; }
+  .hero-copy p.lede { font-size: 1rem; line-height: 1.55; }
+  .hero-actions { flex-direction: column; align-items: stretch; gap: var(--sp-3); margin-top: var(--sp-7); }
+  .hero-actions .btn { width: 100%; padding: 1rem 1.5rem; font-size: var(--fs-md); }
+  .hero-copy .trust-line { margin-top: var(--sp-5); justify-content: center; display: flex; }
 
-  .dashboard-card { padding: var(--sp-5); }
+  .dashboard-card { padding: var(--sp-5); border-radius: var(--r-lg); }
   .dash-main { grid-template-columns: 1fr; justify-items: center; text-align: center; }
   .dash-cards-row { grid-template-columns: 1fr 1fr; }
   .chip-moon, .chip-calendar { position: static; margin-bottom: var(--sp-3); display: inline-flex; }
 
-  .trust-grid { grid-template-columns: 1fr; }
+  .trust-grid { grid-template-columns: 1fr; gap: var(--sp-4); }
+  .trust-item { padding: var(--sp-5); }
 
-  .section-head h2 { font-size: var(--fs-2xl); }
+  .section-head h2 { font-size: var(--fs-2xl); line-height: 1.15; }
+  .section-head p { font-size: var(--fs-sm); }
 
-  .bento-grid { grid-template-columns: 1fr; }
+  .bento-grid { grid-template-columns: 1fr; gap: var(--sp-4); }
   .bento-span-2, .bento-span-2-row { grid-column: span 1; grid-row: span 1; }
-  .bento-card { min-height: 200px; }
+  .bento-card { min-height: auto; padding: var(--sp-6) var(--sp-5); }
 
   .cycle-section { margin: 0 var(--sp-5); padding: var(--sp-8) var(--sp-5); }
   .cycle-ring-wrap { width: 240px; height: 240px; }
 
   .insight-stat-row { flex-wrap: wrap; gap: var(--sp-5); }
 
-  .testimonial-grid { grid-template-columns: 1fr; }
+  .testimonial-grid { grid-template-columns: 1fr; gap: var(--sp-4); }
+  .testimonial-card { padding: var(--sp-5); }
 
   .final-cta { margin: 0 var(--sp-5); padding: var(--sp-8) var(--sp-5); }
   .final-cta h2 { font-size: var(--fs-2xl); }
+  .final-cta .btn { width: 100%; padding: 1rem 1.5rem; }
 
   .footer-top { grid-template-columns: 1fr; gap: var(--sp-6); }
   .footer-bottom { flex-direction: column; gap: var(--sp-4); align-items: flex-start; }

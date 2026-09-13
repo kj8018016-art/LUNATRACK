@@ -166,6 +166,7 @@ body.app-body { background: var(--c-bg); transition: background var(--dur-mid) v
   font-weight: 700;
   flex-shrink: 0;
 }
+.avatar.avatar-img { object-fit: cover; background: var(--c-surface-sunken); }
 
 /* -------------------------------------------------------------------------
    4. TOPBAR
@@ -190,6 +191,13 @@ body.app-body { background: var(--c-bg); transition: background var(--dur-mid) v
 }
 
 .topbar-actions { display: flex; align-items: center; gap: var(--sp-4); }
+
+/* Mobile-only greeting — the desktop .app-topbar hides under 992px (replaced
+   by .mobile-topbar, which only has room for a page title), so the personal
+   "Good morning" greeting needs its own always-visible block for phones. */
+.mobile-greeting { display: none; }
+.mobile-greeting h1 { font-family: var(--font-display); font-size: var(--fs-xl); color: var(--c-ink); }
+.mobile-greeting p { margin-top: 2px; font-size: var(--fs-sm); color: var(--c-ink-soft); }
 
 .icon-btn {
   width: 40px; height: 40px;
@@ -267,7 +275,7 @@ body.app-body { background: var(--c-bg); transition: background var(--dur-mid) v
   padding: var(--sp-2) var(--sp-3);
   padding-bottom: max(var(--sp-2), env(safe-area-inset-bottom));
 }
-.bottom-nav-list { display: flex; justify-content: space-between; }
+.bottom-nav-list { display: flex; justify-content: space-between; align-items: flex-end; }
 .bottom-nav-link {
   display: flex; flex-direction: column; align-items: center; gap: 3px;
   padding: var(--sp-2) var(--sp-2);
@@ -277,16 +285,23 @@ body.app-body { background: var(--c-bg); transition: background var(--dur-mid) v
 .bottom-nav-link svg { width: 21px; height: 21px; }
 .bottom-nav-link span { font-size: 10.5px; font-weight: 600; }
 .bottom-nav-link.is-active { color: var(--c-plum); }
+
+.bottom-nav-link.is-log {
+  flex: 0 0 auto;
+  margin-top: -28px;
+  padding: 0;
+}
 .bottom-nav-link.is-log .bottom-nav-log-btn {
-  width: 40px; height: 40px;
+  width: 56px; height: 56px;
   border-radius: 50%;
   display: grid; place-items: center;
-  background: var(--c-plum);
-  color: var(--c-on-plum);
-  margin-bottom: 2px;
+  background: linear-gradient(155deg, var(--c-plum), var(--c-burgundy));
+  color: #fff;
+  box-shadow: 0 10px 22px -6px rgba(166, 18, 87, 0.55), 0 0 0 6px var(--c-surface);
+  transition: transform var(--dur-fast) var(--ease-soft), box-shadow var(--dur-fast) var(--ease-soft);
 }
-.bottom-nav-link.is-log.is-active .bottom-nav-log-btn { background: var(--c-plum-deep); }
-.bottom-nav-link.is-log span { color: var(--c-ink-faint); }
+.bottom-nav-link.is-log:active .bottom-nav-log-btn { transform: scale(0.9); }
+.bottom-nav-link.is-log.is-active .bottom-nav-log-btn { background: linear-gradient(155deg, var(--c-plum-deep), var(--c-plum)); }
 
 /* -------------------------------------------------------------------------
    7. CARDS
@@ -352,7 +367,7 @@ body.app-body { background: var(--c-bg); transition: background var(--dur-mid) v
   color: var(--c-ink);
   margin-bottom: var(--sp-3);
 }
-.form-field textarea, .form-field input[type="text"], .form-field input[type="email"], .form-field input[type="date"], .form-field input[type="number"] {
+.form-field textarea, .form-field input[type="text"], .form-field input[type="email"], .form-field input[type="password"], .form-field input[type="date"], .form-field input[type="number"] {
   width: 100%;
   border: 1px solid var(--c-border);
   border-radius: var(--r-md);
@@ -705,3 +720,75 @@ body.app-body { background: var(--c-bg); transition: background var(--dur-mid) v
   padding: 10px 18px; z-index: 999; border-radius: var(--r-sm);
 }
 .skip-link:focus { left: var(--sp-4); top: var(--sp-4); }
+
+/* -------------------------------------------------------------------------
+   21. HELP CENTER / SEARCH INPUT / EXPANDABLE FAQ
+   ------------------------------------------------------------------------- */
+.search-input-wrap { position: relative; }
+.search-input-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--c-ink-faint); pointer-events: none; }
+.search-input-wrap input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.6rem;
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-full);
+  font-family: var(--font-ui);
+  font-size: var(--fs-sm);
+  color: var(--c-ink);
+  background: var(--c-surface);
+  transition: border-color var(--dur-fast) var(--ease-soft);
+}
+.search-input-wrap input:focus { border-color: var(--c-plum); outline: none; }
+
+.help-categories { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-bottom: var(--sp-6); }
+.chat-suggestion-chip.is-active-chip { background: var(--c-plum); color: var(--c-on-plum); border-color: var(--c-plum); }
+
+.help-section-title { font-family: var(--font-display); font-size: var(--fs-lg); color: var(--c-ink); margin-bottom: var(--sp-4); }
+
+.help-item {
+  border-top: 1px solid var(--c-border);
+  padding: var(--sp-4) 0;
+}
+.help-item:first-of-type { border-top: none; padding-top: 0; }
+.help-item summary {
+  cursor: pointer;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--c-ink);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.help-item summary::-webkit-details-marker { display: none; }
+.help-item summary::after {
+  content: '+';
+  font-size: 18px;
+  color: var(--c-ink-faint);
+  transition: transform var(--dur-fast) var(--ease-soft);
+  flex-shrink: 0;
+  margin-left: var(--sp-3);
+}
+.help-item[open] summary::after { transform: rotate(45deg); }
+.help-item p { margin-top: var(--sp-3); font-size: var(--fs-sm); color: var(--c-ink-soft); line-height: var(--lh-normal); }
+
+/* -------------------------------------------------------------------------
+   22. EDUCATIONAL CONTENT (Learn)
+   ------------------------------------------------------------------------- */
+.learn-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp-5); }
+.learn-card {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-5);
+  cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease-soft), box-shadow var(--dur-fast) var(--ease-soft), border-color var(--dur-fast) var(--ease-soft);
+}
+.learn-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-soft); border-color: var(--c-border-strong); }
+.learn-card .learn-cat { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; color: var(--c-burgundy); }
+.learn-card h3 { font-family: var(--font-display); font-size: var(--fs-md); color: var(--c-ink); margin-top: var(--sp-2); }
+.learn-card p { font-size: var(--fs-sm); color: var(--c-ink-soft); margin-top: var(--sp-2); }
+.learn-card .read-more { font-size: var(--fs-xs); font-weight: 600; color: var(--c-plum); margin-top: var(--sp-4); display: inline-block; }
+
+.learn-article-body { font-size: var(--fs-sm); color: var(--c-ink-soft); line-height: var(--lh-normal); }
+.learn-article-body p { margin-bottom: var(--sp-4); }
+.learn-article-body h4 { font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 700; color: var(--c-ink); margin: var(--sp-5) 0 var(--sp-2); }
