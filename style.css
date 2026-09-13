@@ -8,35 +8,41 @@
    ------------------------------------------------------------------------- */
 :root {
   /* Color — base neutrals */
-  --c-bg: #FAF7F2;
-  --c-bg-alt: #F1EBE2;
+  --c-bg: #FFF6F7;
+  --c-bg-alt: #FFEBEF;
   --c-surface: #FFFFFF;
-  --c-surface-sunken: #F6F1EA;
-  --c-border: #E5DDD0;
-  --c-border-strong: #D8CBB8;
+  --c-surface-sunken: #FFF1F4;
+  --c-border: #FBDDE4;
+  --c-border-strong: #F6C2CF;
 
   /* Color — ink */
-  --c-ink: #2A231F;
-  --c-ink-soft: #5B5049;
-  --c-ink-faint: #8B8078;
+  --c-ink: #241B34;
+  --c-ink-soft: #6C6382;
+  --c-ink-faint: #A79DB8;
 
   /* Color — brand */
-  --c-plum: #A61257;
-  --c-plum-deep: #3D0B29;
-  --c-burgundy: #D6336C;
-  --c-rose: #E8779D;
-  --c-rose-soft: #F7CDE0;
-  --c-lavender: #B98FBF;
-  --c-lavender-soft: #EAD9F0;
+  --c-plum: #FF4D7D;
+  --c-plum-deep: #D62E5E;
+  --c-burgundy: #FF6A55;
+  --c-rose: #FF93A8;
+  --c-rose-soft: #FFE1E8;
+  --c-lavender: #8C7AE6;
+  --c-lavender-soft: #ECE6FD;
+
+  /* Color — extra accents (safe/fertile + ovulation style cards) */
+  --c-mint: #35B583;
+  --c-mint-soft: #DAF6E7;
+  --c-amber: #FF9F5A;
+  --c-amber-soft: #FFE9D3;
 
   /* Color — semantic */
-  --c-on-plum: #FBEFF4;
-  --c-focus: #C21A63;
+  --c-on-plum: #FFFFFF;
+  --c-focus: #FF4D7D;
 
   /* Typography */
-  --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-support: 'Plus Jakarta Sans', 'Inter', sans-serif;
-  --font-display: 'Fraunces', Georgia, serif;
+  --font-ui: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-support: 'Inter', 'Poppins', sans-serif;
+  --font-display: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
 
   --fs-xs: 0.8125rem;
   --fs-sm: 0.9375rem;
@@ -64,9 +70,9 @@
   --sp-9: 6.5rem;
 
   /* Radius */
-  --r-sm: 6px;
-  --r-md: 12px;
-  --r-lg: 20px;
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 24px;
   --r-full: 999px;
 
   /* Shadow */
@@ -113,7 +119,7 @@ body {
   overflow-x: hidden;
 }
 
-h1, h2, h3, h4 { margin: 0; font-weight: 500; line-height: var(--lh-tight); color: var(--c-ink); }
+h1, h2, h3, h4 { margin: 0; font-weight: 600; line-height: var(--lh-tight); color: var(--c-ink); }
 p { margin: 0; }
 a { color: inherit; text-decoration: none; }
 ul { list-style: none; margin: 0; padding: 0; }
@@ -150,8 +156,9 @@ img, svg { display: block; max-width: 100%; }
 
 .section-head h2 {
   font-family: var(--font-display);
+  font-weight: 700;
   font-size: var(--fs-3xl);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 
 .section-head p {
@@ -174,7 +181,7 @@ section { padding: var(--sp-9) 0; position: relative; }
   border-radius: var(--r-full);
   font-family: var(--font-ui);
   font-size: var(--fs-sm);
-  font-weight: 600;
+  font-weight: 700;
   transition: transform var(--dur-fast) var(--ease-soft),
               box-shadow var(--dur-fast) var(--ease-soft),
               background var(--dur-fast) var(--ease-soft);
@@ -185,12 +192,12 @@ section { padding: var(--sp-9) 0; position: relative; }
 .btn-primary {
   background: var(--c-plum);
   color: var(--c-on-plum);
-  box-shadow: var(--shadow-soft);
+  box-shadow: 0 10px 24px -8px rgba(255, 77, 125, 0.55);
 }
 .btn-primary:hover {
   background: var(--c-plum-deep);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-lift);
+  box-shadow: 0 14px 30px -8px rgba(255, 77, 125, 0.6);
 }
 
 .btn-secondary {
@@ -355,7 +362,7 @@ section { padding: var(--sp-9) 0; position: relative; }
   top: -180px; right: -160px;
   width: 620px; height: 620px;
   border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, rgba(156,143,191,0.35), rgba(201,143,138,0.18) 55%, transparent 75%);
+  background: radial-gradient(circle at 30% 30%, rgba(140,122,230,0.32), rgba(255,105,140,0.22) 55%, transparent 75%);
   filter: blur(6px);
   pointer-events: none;
   animation: orb-drift 16s ease-in-out infinite;
@@ -380,8 +387,9 @@ section { padding: var(--sp-9) 0; position: relative; }
 
 .hero-copy h1 {
   font-family: var(--font-display);
+  font-weight: 700;
   font-size: clamp(2.5rem, 4.4vw, var(--fs-4xl));
-  letter-spacing: -0.015em;
+  letter-spacing: -0.02em;
   color: var(--c-plum-deep);
 }
 
@@ -813,7 +821,7 @@ section { padding: var(--sp-9) 0; position: relative; }
   padding: var(--sp-9) var(--sp-6);
   text-align: center;
   overflow: hidden;
-  background: radial-gradient(circle at 50% 0%, rgba(201,143,138,0.35), transparent 60%), var(--c-plum-deep);
+  background: radial-gradient(circle at 50% 0%, rgba(255,147,168,0.4), transparent 60%), var(--c-plum-deep);
   color: var(--c-on-plum);
 }
 .final-cta h2 { font-family: var(--font-display); font-size: var(--fs-3xl); color: var(--c-on-plum); }

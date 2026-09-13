@@ -10,17 +10,22 @@
    Toggled via [data-theme="dark"] on <html>, persisted in localStorage.
    ------------------------------------------------------------------------- */
 :root[data-theme="dark"] {
-  --c-bg: #1B1420;
-  --c-bg-alt: #221929;
-  --c-surface: #271C2E;
-  --c-surface-sunken: #201724;
-  --c-border: #392C40;
-  --c-border-strong: #4A3A52;
-  --c-ink: #F3E9F0;
-  --c-ink-soft: #C7B7C6;
-  --c-ink-faint: #96849A;
-  --c-burgundy: #E8558A;
-  --c-rose: #EA96B4;
+  --c-bg: #1C1526;
+  --c-bg-alt: #221A2E;
+  --c-surface: #281F35;
+  --c-surface-sunken: #21192C;
+  --c-border: #3B2E4A;
+  --c-border-strong: #4D3C5D;
+  --c-ink: #F5EEF7;
+  --c-ink-soft: #C9BDD4;
+  --c-ink-faint: #9A8CAA;
+  --c-plum: #FF6690;
+  --c-plum-deep: #D62E5E;
+  --c-burgundy: #FF8770;
+  --c-rose: #FFA7B8;
+  --c-lavender: #A697F0;
+  --c-mint: #4ECB9B;
+  --c-amber: #FFB27A;
 }
 
 html, body { height: 100%; }
@@ -551,8 +556,8 @@ body.app-body { background: var(--c-bg); transition: background var(--dur-mid) v
 .full-cal-days button:not(.is-empty):hover { border-color: var(--c-border-strong); }
 .full-cal-days button.is-period { background: var(--c-burgundy); color: #fff; }
 .full-cal-days button.is-estimated { border: 1.5px dashed var(--c-burgundy); color: var(--c-burgundy); }
-.full-cal-days button.is-fertile { background: var(--c-lavender-soft); color: var(--c-plum); }
-.full-cal-days button.is-ovulation { background: var(--c-lavender); color: #fff; font-weight: 700; }
+.full-cal-days button.is-fertile { background: var(--c-amber-soft); color: var(--c-burgundy); }
+.full-cal-days button.is-ovulation { background: var(--c-amber); color: #fff; font-weight: 700; }
 .full-cal-days button.is-today:not(.is-period) { box-shadow: 0 0 0 1.5px var(--c-plum) inset; font-weight: 700; color: var(--c-plum); }
 .full-cal-days button.is-today.is-ovulation { color: #fff; }
 .full-cal-days button .log-dot { width: 4px; height: 4px; border-radius: 50%; background: currentColor; margin-top: 3px; opacity: 0.6; }

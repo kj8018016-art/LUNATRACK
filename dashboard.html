@@ -18,7 +18,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="animations.css">
@@ -75,8 +75,14 @@
           <div id="cycleCardBody">
           <div class="cycle-ring-block" id="cycleRing">
             <svg viewBox="0 0 168 168" width="168" height="168">
-              <circle cx="84" cy="84" r="72" fill="none" stroke="rgba(251,239,244,0.18)" stroke-width="12"/>
-              <circle class="ring-progress" cx="84" cy="84" r="72" fill="none" stroke="var(--c-rose)" stroke-width="12" stroke-linecap="round" transform="rotate(-90 84 84)"/>
+              <defs>
+                <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#FFA9BC"/>
+                  <stop offset="100%" stop-color="#FF4D7D"/>
+                </linearGradient>
+              </defs>
+              <circle cx="84" cy="84" r="72" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="12"/>
+              <circle class="ring-progress" cx="84" cy="84" r="72" fill="none" stroke="url(#ringGradient)" stroke-width="12" stroke-linecap="round" transform="rotate(-90 84 84)"/>
             </svg>
             <div class="cycle-ring-center">
               <span class="num" id="cycleDayNum">14</span>

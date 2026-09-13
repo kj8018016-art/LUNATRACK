@@ -74,7 +74,7 @@
 }
 .cpb-period { background: var(--c-burgundy); border-radius: var(--r-full) 0 0 var(--r-full); }
 .cpb-follicular { background: rgba(251,239,244,0.4); transition-delay: 120ms; }
-.cpb-ovulation { background: var(--c-lavender); transition-delay: 240ms; }
+.cpb-ovulation { background: var(--c-amber); transition-delay: 240ms; }
 .cpb-luteal { background: rgba(251,239,244,0.2); transition-delay: 360ms; border-radius: 0 var(--r-full) var(--r-full) 0; }
 
 .cpb-marker {
@@ -196,8 +196,8 @@
 }
 .mini-cal-days button:hover { background: var(--c-surface-sunken); }
 .mini-cal-days button.is-period { background: var(--c-burgundy); color: #fff; }
-.mini-cal-days button.is-fertile { background: var(--c-lavender-soft); color: var(--c-plum); }
-.mini-cal-days button.is-ovulation { background: var(--c-lavender); color: #fff; font-weight: 700; }
+.mini-cal-days button.is-fertile { background: var(--c-amber-soft); color: var(--c-burgundy); }
+.mini-cal-days button.is-ovulation { background: var(--c-amber); color: #fff; font-weight: 700; }
 .mini-cal-days button.is-estimated { border: 1.5px dashed var(--c-burgundy); color: var(--c-burgundy); }
 .mini-cal-days button.is-today { box-shadow: 0 0 0 1.5px var(--c-plum) inset; font-weight: 700; color: var(--c-plum); }
 .mini-cal-days button.is-today.is-ovulation { color: #fff; }
