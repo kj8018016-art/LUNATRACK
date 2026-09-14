@@ -54,6 +54,30 @@ python -m http.server 5500
    `https://<project-ref>.supabase.co/auth/v1/callback`
 2. Supabase → Authentication → Providers → Google → paste Client ID/Secret.
 
+## Turning on real AI Chat (optional)
+
+The AI Chat page works out of the box using a small set of built-in
+keyword-matched replies grounded in your real cycle data. To upgrade it
+to a real Claude-backed model:
+
+1. Install the [Supabase CLI](https://supabase.com/docs/guides/cli) and
+   log in / link it to your project (`supabase login`, `supabase link`).
+2. Get an API key from [console.anthropic.com](https://console.anthropic.com).
+3. Set it as a secret (never put this in client-side code):
+   ```
+   supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
+   ```
+4. Deploy the function:
+   ```
+   supabase functions deploy ai-chat
+   ```
+
+That's it — `ai-chat.js` automatically tries the real function first on
+every message and silently falls back to the built-in replies if the
+function isn't deployed or the call fails, so nothing breaks either way.
+The function code is in `supabase/functions/ai-chat/index.ts` if you'd
+like to read or customize the prompt.
+
 ## What's real now
 
 - **Auth**: real sign up/in/out, session persistence, per-user data

@@ -520,7 +520,7 @@ const LunaApp = (() => {
   const BOTTOM_NAV_ITEMS = [
     { id: 'dashboard', label: 'Home', href: 'dashboard.html', iconName: 'home' },
     { id: 'calendar', label: 'Calendar', href: 'calendar.html', iconName: 'calendar' },
-    { id: 'log', label: 'Log', href: 'log.html', iconName: 'plus', isLog: true },
+    { id: 'log', label: 'Log', href: 'log.html', iconName: 'edit', isLog: true },
     { id: 'insights', label: 'Insights', href: 'insights.html', iconName: 'chart' },
     { id: 'settings', label: 'Profile', href: 'settings.html', iconName: 'user' },
   ];
@@ -550,7 +550,7 @@ const LunaApp = (() => {
       + '<div class="sidebar-foot">'
       + navLinkHTML({ id: 'settings', label: 'Settings', href: 'settings.html', iconName: 'settings' }, activePage === 'settings')
       + '<a class="sidebar-link" href="help.html">' + icon('help', 19) + '<span>Help</span></a>'
-      + '<a class="sidebar-profile" href="settings.html">' + avatarHTML(34) + '<span class="who"><span class="name">' + (data.user.name || 'Your account') + '</span><span class="role">' + data.user.email + '</span></span></a>'
+      + '<a class="sidebar-profile" href="settings.html">' + avatarHTML(34) + '<span class="who"><span class="name">' + (data.user.name || 'Your account') + '</span></span></a>'
       + '</div></aside>';
   }
 
@@ -586,7 +586,7 @@ const LunaApp = (() => {
     const items = BOTTOM_NAV_ITEMS.map(function (item) {
       const active = item.id === activePage;
       if (item.isLog) {
-        return '<a class="bottom-nav-link is-log ' + (active ? 'is-active' : '') + '" href="' + item.href + '" aria-label="Log today"><span class="bottom-nav-log-btn">' + icon('plus', 22) + '</span></a>';
+        return '<a class="bottom-nav-link is-log ' + (active ? 'is-active' : '') + '" href="' + item.href + '" aria-label="Log today"><span class="bottom-nav-log-btn">' + icon('edit', 20) + '</span></a>';
       }
       return '<a class="bottom-nav-link ' + (active ? 'is-active' : '') + '" href="' + item.href + '">' + icon(item.iconName, 21) + '<span>' + item.label + '</span></a>';
     }).join('');

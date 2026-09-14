@@ -1,13 +1,16 @@
 /* ==========================================================================
    LunaTrack App — ai-chat.js
-   Powers ai-chat.html. This is a scripted preview, not a live model — it
-   answers from LunaApp.data (the user's real logged data) using keyword
-   matching. Swapping in a real model later means replacing getReply()
-   with an API call; the UI/conversation state stays the same.
+   Powers ai-chat.html. Tries the real AI first (the "ai-chat" Supabase
+   Edge Function, which calls Claude server-side using your own cycle
+   data as context) and automatically falls back to a local keyword-
+   matched reply if that function isn't deployed/configured yet — the
+   chat page works either way, it just gets smarter once the function
+   is set up. See supabase/functions/ai-chat/index.ts.
    ========================================================================== */
 
 (function () {
   let data, cc, ins;
+  let useRealAI = true; // flips to false after the first failed call, so we don't retry a missing function on every message
 
   const messagesEl = document.getElementById('chatMessages');
   const inputEl = document.getElementById('chatInput');
@@ -38,7 +41,8 @@
     if (row) row.remove();
   }
 
-  function getReply(message) {
+  /** Built-in fallback — used automatically if the real AI function isn't deployed/configured. */
+  function getLocalReply(message) {
     const m = message.toLowerCase();
 
     if (/(period|bleed)/.test(m)) {
@@ -73,7 +77,39 @@
     if (/(thank|thanks)/.test(m)) {
       return 'Anytime! Let me know if anything else comes up.';
     }
-    return "I'm still a preview, so I can only help with a few things right now \u2014 try asking about your period, ovulation, symptoms, or cycle length.";
+    return "I can only help with a few specific things right now \u2014 try asking about your period, ovulation, symptoms, or cycle length.";
+  }
+
+  function buildContext() {
+    return {
+      hasSetup: cc.hasSetup,
+      cycleDay: cc.day,
+      cycleLength: cc.cycleLength,
+      periodLength: cc.periodLength,
+      nextPeriodDate: cc.nextPeriodDate,
+      daysUntilNext: cc.daysUntilNext,
+      ovulationDate: cc.ovulationDate,
+      fertileWindowLabel: cc.fertileWindowLabel,
+      avgCycleLength: ins.avgCycleLength,
+      cyclesLogged: ins.cyclesLogged,
+      topSymptom: ins.symptomFrequency.length ? ins.symptomFrequency[0].name : null,
+    };
+  }
+
+  async function getReply(message) {
+    if (useRealAI && LunaSupabase.isConfigured) {
+      try {
+        const { data: fnData, error } = await LunaSupabase.client.functions.invoke('ai-chat', {
+          body: { message: message, context: buildContext() },
+        });
+        if (!error && fnData && fnData.reply) return fnData.reply;
+        if (fnData && fnData.error) console.warn('LunaTrack AI:', fnData.error);
+      } catch (e) {
+        console.warn('LunaTrack AI: ai-chat function unavailable, using built-in replies.', e);
+      }
+      useRealAI = false; // don't keep retrying a missing/broken function for the rest of this session
+    }
+    return getLocalReply(message);
   }
 
   function sendMessage(text) {
@@ -83,15 +119,16 @@
     renderMessage('user', trimmed);
     inputEl.value = '';
     setInputEnabled(false);
-
     showTyping();
-    const delay = 550 + Math.min(900, trimmed.length * 18);
-    setTimeout(function () {
+
+    const minDelay = new Promise(function (resolve) { setTimeout(resolve, 550); });
+
+    Promise.all([getReply(trimmed), minDelay]).then(function (results) {
       hideTyping();
-      renderMessage('ai', getReply(trimmed));
+      renderMessage('ai', results[0]);
       setInputEnabled(true);
       inputEl.focus();
-    }, delay);
+    });
   }
 
   function setInputEnabled(enabled) {
