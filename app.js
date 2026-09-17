@@ -123,6 +123,12 @@ const LunaApp = (() => {
     const cycleIndex = Math.floor(daysSinceStart / cycleLength);
     const currentCycleStart = new Date(lastStart);
     currentCycleStart.setDate(lastStart.getDate() + cycleIndex * cycleLength);
+    // The current cycle's own estimated period window (e.g. Sep 11-15) —
+    // this was previously computed nowhere as a range, only nextPeriodStart/
+    // nextPeriodEnd (one full cycle later) was, which is why the calendar
+    // only ever shaded the period *after* this one and skipped this one.
+    const currentCycleEnd = new Date(currentCycleStart);
+    currentCycleEnd.setDate(currentCycleStart.getDate() + periodLength - 1);
 
     const day = daysSinceStart - cycleIndex * cycleLength + 1;
 
@@ -131,6 +137,14 @@ const LunaApp = (() => {
     const nextPeriodEndDate = new Date(nextPeriodStartDate);
     nextPeriodEndDate.setDate(nextPeriodStartDate.getDate() + periodLength - 1);
     const daysUntilNext = Math.round((nextPeriodStartDate - TODAY) / MS_DAY);
+
+    // One cycle further back, so browsing to the previous month doesn't
+    // show a blank calendar with no estimate either (same bug, one cycle
+    // earlier).
+    const previousCycleStart = new Date(currentCycleStart);
+    previousCycleStart.setDate(currentCycleStart.getDate() - cycleLength);
+    const previousCycleEnd = new Date(previousCycleStart);
+    previousCycleEnd.setDate(previousCycleStart.getDate() + periodLength - 1);
 
     const ovulationDay = Math.max(periodLength + 3, cycleLength - 14);
     const ovulationDate = new Date(currentCycleStart);
@@ -154,6 +168,9 @@ const LunaApp = (() => {
       fertileWindowLabel: fmtShort(fertileStartDate) + ' \u2013 ' + fmtShort(ovulationDate),
       dates: {
         cycleStart: currentCycleStart,
+        cycleEnd: currentCycleEnd,
+        previousCycleStart: previousCycleStart,
+        previousCycleEnd: previousCycleEnd,
         nextPeriodStart: nextPeriodStartDate,
         nextPeriodEnd: nextPeriodEndDate,
         ovulation: ovulationDate,
@@ -284,8 +301,47 @@ const LunaApp = (() => {
       }, { onConflict: 'user_id,log_date' })
       .select().single();
     if (error) return { error: error.message };
+
+    if (entry.period && entry.period !== 'Not started') {
+      await maybeAdvanceCycleBaseline(logDate, user.id);
+    }
+
     addNotification('Your log for ' + fmtShort(dateFromISO(logDate)) + ' was saved.');
     return { log: row };
+  }
+
+  /**
+   * If a logged period start looks like the first day of a NEW cycle (the
+   * day before it wasn't already logged as a period day), and it's later
+   * than the currently known baseline, move cycle_setups.last_period_start
+   * forward to it — so every future prediction (next period, ovulation,
+   * fertile window, the calendar) recalculates from the newest real data
+   * instead of staying anchored to the original setup date forever.
+   * Never moves the baseline backward, and never fires for a day that's
+   * just a continuation of an already-logged period.
+   */
+  async function maybeAdvanceCycleBaseline(logDateIso, userId) {
+    try {
+      const setup = storage.get('cycle-setup-raw', null);
+      if (!setup) return;
+
+      const logDate = dateFromISO(logDateIso);
+      const prevDay = new Date(logDate);
+      prevDay.setDate(logDate.getDate() - 1);
+
+      const { data: prevRow } = await LunaSupabase.client
+        .from('daily_logs').select('period_flow')
+        .eq('user_id', userId).eq('log_date', isoDate(prevDay)).maybeSingle();
+      const prevWasPeriod = prevRow && prevRow.period_flow && prevRow.period_flow !== 'Not started';
+      if (prevWasPeriod) return; // continuation of an existing run, not a new start
+
+      const currentBaseline = dateFromISO(setup.lastPeriodStart);
+      if (logDate <= currentBaseline) return; // never move the baseline backward
+
+      await saveCycleSetup({ lastPeriodStart: logDateIso, cycleLength: setup.cycleLength, periodLength: setup.periodLength });
+    } catch (e) {
+      console.warn('LunaTrack: could not advance cycle baseline.', e);
+    }
   }
 
   async function loadNotes() {

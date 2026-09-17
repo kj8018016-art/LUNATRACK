@@ -262,10 +262,12 @@
       else if (cd) {
         const isOvulation = isSameDay(date, cd.ovulation) || isSameDay(date, cd.nextOvulation);
         const isFertile = isBetween(date, cd.fertileStart, cd.ovulation) || isBetween(date, cd.nextFertileStart, cd.nextOvulation);
-        const isEstimatedPeriod = isBetween(date, cd.nextPeriodStart, cd.nextPeriodEnd);
-        if (isOvulation) classes.push('is-ovulation');
+        const isEstimatedPeriod = isBetween(date, cd.previousCycleStart, cd.previousCycleEnd)
+          || isBetween(date, cd.cycleStart, cd.cycleEnd)
+          || isBetween(date, cd.nextPeriodStart, cd.nextPeriodEnd);
+        if (isEstimatedPeriod) classes.push('is-estimated');
         else if (isFertile) classes.push('is-fertile');
-        else if (isEstimatedPeriod) classes.push('is-estimated');
+        else if (isOvulation) classes.push('is-ovulation');
       }
       if (day === TODAY.getDate()) classes.push('is-today');
       if (day === selectedDay) classes.push('is-selected');

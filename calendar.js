@@ -13,6 +13,18 @@
   function isSameDay(a, b) { return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); }
   function isBetween(d, start, end) { return start && end && d >= start && d <= end; }
 
+  /** True if `date` falls within ANY of the previous/current/next estimated
+      period windows — not just the single "next" one. This is the fix for
+      the bug where only the period one full cycle after "today" ever
+      rendered, and the current (or previous) cycle's own estimate silently
+      never showed at all. */
+  function isEstimatedPeriod(date, cd) {
+    if (!cd) return false;
+    return isBetween(date, cd.previousCycleStart, cd.previousCycleEnd)
+      || isBetween(date, cd.cycleStart, cd.cycleEnd)
+      || isBetween(date, cd.nextPeriodStart, cd.nextPeriodEnd);
+  }
+
   function computeCycleDay(date) {
     const { data, TODAY } = LunaApp;
     if (!data.currentCycle.hasSetup) return null;
@@ -21,6 +33,7 @@
     const msDay = 86400000;
     if (date >= cd.nextPeriodStart) return Math.floor((date - cd.nextPeriodStart) / msDay) + 1;
     if (date >= cd.cycleStart) return Math.floor((date - cd.cycleStart) / msDay) + 1;
+    if (date >= cd.previousCycleStart) return Math.floor((date - cd.previousCycleStart) / msDay) + 1;
     return null;
   }
 
@@ -43,12 +56,18 @@
       const key = dateKey(viewYear, viewMonth, day);
       const entry = data.loggedDays[key];
       const classes = [];
+      // Priority when states could visually conflict: a real logged period
+      // always wins, then the estimated-period window, then fertile window,
+      // then ovulation day. "Today" is intentionally NOT part of this
+      // priority chain — it's pushed separately below so it always coexists
+      // with whichever of the above applies, instead of replacing it.
       const isOvulation = cd && (isSameDay(date, cd.ovulation) || isSameDay(date, cd.nextOvulation));
       const isFertile = cd && (isBetween(date, cd.fertileStart, cd.ovulation) || isBetween(date, cd.nextFertileStart, cd.nextOvulation));
+      const isEstimated = isEstimatedPeriod(date, cd);
       if (entry && entry.period) classes.push('is-period');
-      else if (isOvulation) classes.push('is-ovulation');
+      else if (isEstimated) classes.push('is-estimated');
       else if (isFertile) classes.push('is-fertile');
-      else if (cd && isBetween(date, cd.nextPeriodStart, cd.nextPeriodEnd)) classes.push('is-estimated');
+      else if (isOvulation) classes.push('is-ovulation');
       if (isSameDay(date, TODAY)) classes.push('is-today');
       const dot = entry ? '<span class="log-dot"></span>' : '';
       return '<button class="' + classes.join(' ') + '" data-day="' + day + '" aria-label="' + grid.monthLabel + ' ' + day + '">' + day + dot + '</button>';
@@ -73,7 +92,7 @@
 
     document.getElementById('ddModalDate').textContent = label;
     document.getElementById('ddModalCycleDay').textContent = cycleDay !== null ? ('Cycle day ' + cycleDay + (phase ? (' \u00b7 ' + phase) : '')) : 'No cycle setup yet';
-    document.getElementById('ddModalPeriod').textContent = entry && entry.period ? 'Logged' : (cd && isBetween(date, cd.nextPeriodStart, cd.nextPeriodEnd) ? 'Estimated' : 'Not logged');
+    document.getElementById('ddModalPeriod').textContent = entry && entry.period ? 'Logged' : (isEstimatedPeriod(date, cd) ? 'Estimated' : 'Not logged');
     document.getElementById('ddModalFertility').textContent = isOvulation ? 'Estimated ovulation day' : (isFertile ? 'In fertile window (estimated)' : 'Outside fertile window');
     document.getElementById('ddModalSymptoms').textContent = entry && entry.symptoms.length ? entry.symptoms.join(', ') : 'None';
     document.getElementById('ddModalMood').textContent = entry && entry.mood ? entry.mood : '\u2014';
