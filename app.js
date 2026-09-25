@@ -51,7 +51,11 @@ const LunaApp = (() => {
      signed-in user's own rows.
      ------------------------------------------------------------------------- */
   const data = {
-    user: { id: null, name: '', initials: '?', email: '', avatarUrl: null, memberSince: '' },
+    user: {
+      id: null, name: '', initials: '?', email: '', avatarUrl: null, memberSince: '',
+      age: null, dateOfBirth: null, onboardingCompleted: false,
+      lifestyle: {}, cycleExperience: {}, wellnessFocus: [],
+    },
     currentCycle: {
       hasSetup: false,
       day: null, cycleLength: 28, periodLength: 5,
@@ -443,7 +447,7 @@ const LunaApp = (() => {
     data.user.email = user.email || '';
 
     const results = await Promise.all([
-      LunaSupabase.client.from('profiles').select('name, avatar_url, member_since').eq('id', user.id).maybeSingle(),
+      LunaSupabase.client.from('profiles').select('name, avatar_url, member_since, age, date_of_birth, onboarding_completed, lifestyle, cycle_experience, wellness_focus').eq('id', user.id).maybeSingle(),
       LunaSupabase.client.from('cycle_setups').select('last_period_start, cycle_length, period_length').eq('user_id', user.id).maybeSingle(),
       LunaSupabase.client.from('daily_logs').select('*').eq('user_id', user.id).order('log_date', { ascending: false }).limit(200),
       LunaSupabase.client.from('notes').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(50),
@@ -460,6 +464,12 @@ const LunaApp = (() => {
     data.user.initials = (data.user.name || '?').trim()[0].toUpperCase();
     data.user.avatarUrl = profile && profile.avatar_url;
     data.user.memberSince = profile && profile.member_since ? fmtShort(new Date(profile.member_since)) : '';
+    data.user.age = (profile && profile.age != null) ? profile.age : null;
+    data.user.dateOfBirth = (profile && profile.date_of_birth) || null;
+    data.user.onboardingCompleted = Boolean(profile && profile.onboarding_completed);
+    data.user.lifestyle = (profile && profile.lifestyle) || {};
+    data.user.cycleExperience = (profile && profile.cycle_experience) || {};
+    data.user.wellnessFocus = (profile && profile.wellness_focus) || [];
 
     if (setupRow) {
       const raw = { lastPeriodStart: setupRow.last_period_start, cycleLength: setupRow.cycle_length, periodLength: setupRow.period_length };
@@ -828,6 +838,7 @@ const LunaApp = (() => {
   }
 
   function initOnboarding() {
+    if (document.body.dataset.page === 'onboarding') return; // the onboarding page handles its own flow
     injectCycleSetupModal();
     if (!data.currentCycle.hasSetup) {
       setTimeout(function () { openCycleSetupModal('onboarding'); }, 450);

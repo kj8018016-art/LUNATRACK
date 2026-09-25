@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+(function(){
+  try {
+    var raw = localStorage.getItem('lunatrack:theme');
+    var pref = raw ? JSON.parse(raw) : 'light';
+    var resolved = pref === 'system' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : pref;
+    if (resolved === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  } catch (e) {}
+})();
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Set up your profile — LunaTrack</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="animations.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="onboarding.css">
+</head>
+<body class="app-body onboard-body" data-page="onboarding" data-title="Set up your profile">
+
+<div id="authGuardOverlay" hidden>
+  <div class="luna-loader"></div>
+  <p>Loading your account&hellip;</p>
+  <a href="login.html" id="authGuardEscape" hidden style="font-size:13px;color:var(--c-plum);font-weight:600;">Taking longer than expected? Go to login &rarr;</a>
+</div>
+
+<div class="onboard-shell">
+  <div class="onboard-card">
+    <div class="onboard-brand">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 12a8 8 0 1 1-8-8 6.5 6.5 0 0 0 8 8Z"/></svg>
+      LunaTrack
+    </div>
+
+    <div class="onboard-progress" id="obProgress">
+      <div class="op-step" data-step="1"><span class="op-dot">1</span><span class="op-label">About You</span></div>
+      <span class="op-line"></span>
+      <div class="op-step" data-step="2"><span class="op-dot">2</span><span class="op-label">Lifestyle</span></div>
+      <span class="op-line"></span>
+      <div class="op-step" data-step="3"><span class="op-dot">3</span><span class="op-label">Cycle</span></div>
+      <span class="op-line"></span>
+      <div class="op-step" data-step="4"><span class="op-dot">4</span><span class="op-label">Wellness</span></div>
+    </div>
+
+    <div id="obStepBody"></div>
+
+    <div class="onboard-actions">
+      <button type="button" class="btn btn-secondary" id="obBackBtn">Back</button>
+      <div class="ob-nav-right">
+        <button type="button" class="ob-skip-btn" id="obSkipBtn">Skip this step</button>
+        <button type="button" class="btn btn-primary" id="obNextBtn">Continue</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-stack" id="toastStack" aria-live="polite"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-client.js"></script>
+<script src="auth.js"></script>
+<script src="app.js"></script>
+<script src="onboarding.js"></script>
+</body>
+</html>

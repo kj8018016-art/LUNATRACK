@@ -395,6 +395,10 @@
   }
 
   function init() {
+    if (!LunaApp.data.user.onboardingCompleted) {
+      window.location.href = 'onboarding.html';
+      return;
+    }
     initGreeting();
     initCycleCard();
     renderActivity();

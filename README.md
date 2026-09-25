@@ -14,13 +14,16 @@ it that way can't break anything).
 ```
 index.html                  landing page
 login.html                  sign in / create account
+onboarding.html              4-step post-signup profile wizard
 dashboard.html, calendar.html, log.html, insights.html,
 history.html, settings.html, help.html, learn.html, ai-chat.html
 style.css, animations.css, responsive.css     landing page styles
 app.css, dashboard.css, app-responsive.css    app shell + page styles
+onboarding.css               onboarding wizard styles
 main.js, components.js, animations.js         landing page scripts
 app.js                      shell + real Supabase data layer
 auth.js, supabase-client.js auth + client config
+onboarding.js                onboarding wizard logic
 dashboard.js, calendar.js, log.js, insights.js,
 ai-chat.js, help-content.js, learn-content.js  page-specific logic
 netlify.toml
@@ -99,6 +102,14 @@ like to read or customize the prompt.
 - **Account deletion**: a `security definer` Postgres function
   (`delete_own_account`) that a user can call on themselves; cascades
   clean up every table via existing foreign keys.
+- **Onboarding profile**: after signing in, a first-time user is sent from
+  the dashboard to `onboarding.html` — a 4-step wizard (About You, Lifestyle
+  & Preferences, Cycle Experience, Wellness focus). Only the name is
+  required; everything else is skippable and saved to `profiles` as you go.
+  Settings shows everything collected, with an "Edit Profile" button that
+  reopens the same wizard (`onboarding.html?edit=1`) pre-filled.
+  **Requires re-running `supabase/schema.sql`** (section 11) so the new
+  `profiles` columns exist — it's still safe to re-run in full.
 
 ## Known limitations / what to verify yourself
 

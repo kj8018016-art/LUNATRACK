@@ -1,0 +1,149 @@
+/* ==========================================================================
+   LunaTrack — onboarding.css
+   Styles for the post-signup onboarding wizard (onboarding.html). Built on
+   the existing design tokens in style.css — no new colors/fonts introduced.
+   Reuses .pill / .pill-group / .form-field / .btn / .avatar from app.css.
+   ========================================================================== */
+
+body.onboard-body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-5);
+  position: relative;
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(255, 77, 125, 0.10), transparent 55%),
+    radial-gradient(circle at 88% 94%, rgba(140, 122, 230, 0.14), transparent 50%),
+    var(--c-bg);
+}
+
+.onboard-shell { width: 100%; max-width: 640px; position: relative; z-index: 1; }
+
+.onboard-card {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-7) var(--sp-6);
+  box-shadow: var(--shadow-lift);
+  position: relative;
+  overflow: hidden;
+  animation: fade-in-up 700ms var(--ease-out) both;
+}
+
+.onboard-card::before,
+.onboard-card::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(42px);
+  opacity: 0.55;
+  pointer-events: none;
+  z-index: 0;
+}
+.onboard-card::before { width: 190px; height: 190px; background: var(--c-rose-soft); top: -80px; right: -70px; }
+.onboard-card::after { width: 170px; height: 170px; background: var(--c-lavender-soft); bottom: -80px; left: -70px; }
+.onboard-card > * { position: relative; z-index: 1; }
+
+.onboard-brand {
+  display: flex; align-items: center; justify-content: center; gap: var(--sp-2);
+  font-family: var(--font-display); font-size: var(--fs-md); color: var(--c-plum);
+  margin-bottom: var(--sp-6);
+}
+
+/* -------------------------------------------------------------------------
+   PROGRESS STEPPER
+   ------------------------------------------------------------------------- */
+.onboard-progress {
+  display: flex; align-items: flex-start; justify-content: center;
+  margin-bottom: var(--sp-7);
+}
+.op-step { display: flex; flex-direction: column; align-items: center; gap: 6px; flex-shrink: 0; width: 68px; }
+.op-dot {
+  width: 30px; height: 30px; border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 12.5px; font-weight: 700;
+  background: var(--c-surface-sunken); color: var(--c-ink-faint);
+  border: 2px solid var(--c-border);
+  transition: background var(--dur-mid) var(--ease-soft), border-color var(--dur-mid) var(--ease-soft),
+    color var(--dur-mid) var(--ease-soft), transform var(--dur-fast) var(--ease-soft);
+}
+.op-label { font-size: 10.5px; color: var(--c-ink-faint); font-weight: 600; white-space: nowrap; text-align: center; }
+.op-step.is-active .op-dot { background: var(--c-plum); border-color: var(--c-plum); color: #fff; transform: scale(1.08); }
+.op-step.is-active .op-label { color: var(--c-plum); }
+.op-step.is-done .op-dot { background: var(--c-plum-deep); border-color: var(--c-plum-deep); color: #fff; }
+.op-step.is-done .op-label { color: var(--c-ink-soft); }
+.op-line { width: 30px; height: 2px; background: var(--c-border); margin-top: 14px; transition: background var(--dur-mid) var(--ease-soft); flex-shrink: 0; }
+.op-line.is-filled { background: var(--c-plum-deep); }
+
+/* -------------------------------------------------------------------------
+   STEP CONTENT
+   ------------------------------------------------------------------------- */
+.ob-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--c-plum); margin-bottom: var(--sp-2); }
+.ob-title { font-family: var(--font-display); font-size: var(--fs-xl); color: var(--c-ink); margin-bottom: var(--sp-2); }
+.ob-sub { font-size: var(--fs-sm); color: var(--c-ink-soft); margin-bottom: var(--sp-6); max-width: 460px; }
+.ob-hint {
+  font-size: var(--fs-xs); color: var(--c-ink-soft);
+  background: var(--c-surface-sunken); border-radius: var(--r-md);
+  padding: var(--sp-3) var(--sp-4); margin-bottom: var(--sp-6);
+}
+.ob-optional { font-weight: 400; color: var(--c-ink-faint); text-transform: none; letter-spacing: 0; font-size: 11px; }
+
+#obStepBody { min-height: 280px; }
+.ob-step { animation: fade-in-up 420ms var(--ease-out) both; }
+
+.ob-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-5); }
+
+/* -------------------------------------------------------------------------
+   AVATAR UPLOAD
+   ------------------------------------------------------------------------- */
+.ob-avatar-row { display: flex; justify-content: center; margin-bottom: var(--sp-6); }
+.ob-avatar-wrap { position: relative; width: 96px; height: 96px; flex-shrink: 0; }
+.ob-avatar-wrap .avatar { width: 96px !important; height: 96px !important; font-size: var(--fs-xl); }
+.ob-avatar-edit {
+  position: absolute; bottom: -2px; right: -2px;
+  width: 32px; height: 32px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--c-plum); color: #fff;
+  border: 3px solid var(--c-surface);
+  transition: transform var(--dur-fast) var(--ease-soft), background var(--dur-fast) var(--ease-soft);
+}
+.ob-avatar-edit:hover { background: var(--c-plum-deep); transform: scale(1.06); }
+.ob-avatar-edit svg { width: 13px; height: 13px; }
+
+/* Wellness-focus chips read a little friendlier/larger than default pills */
+#obStepBody .pill-group[data-field="wellnessFocus"] .pill { padding: var(--sp-3) var(--sp-5); font-weight: 600; }
+
+/* -------------------------------------------------------------------------
+   NAV ROW
+   ------------------------------------------------------------------------- */
+.onboard-actions {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4);
+  margin-top: var(--sp-6); padding-top: var(--sp-6); border-top: 1px solid var(--c-border);
+}
+.ob-nav-right { display: flex; align-items: center; gap: var(--sp-5); }
+.ob-skip-btn { font-size: var(--fs-sm); font-weight: 600; color: var(--c-ink-faint); transition: color var(--dur-fast) var(--ease-soft); }
+.ob-skip-btn:hover { color: var(--c-plum); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ob-step, .onboard-card { animation: none !important; }
+}
+
+/* -------------------------------------------------------------------------
+   RESPONSIVE
+   ------------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  .onboard-card { padding: var(--sp-6) var(--sp-5); }
+  .op-label { display: none; }
+  .op-step { width: 40px; }
+  .op-line { width: 18px; }
+  .ob-row-2 { grid-template-columns: 1fr; gap: 0; }
+}
+
+@media (max-width: 420px) {
+  .onboard-actions { flex-wrap: wrap; }
+  .onboard-actions .btn { flex: 1 1 auto; }
+  .ob-nav-right { flex: 1 1 100%; justify-content: space-between; order: 2; }
+  #obBackBtn { order: 1; }
+}

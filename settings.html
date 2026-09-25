@@ -75,6 +75,43 @@
         </div>
       </div>
 
+      <!-- Onboarding profile summary -->
+      <div class="app-card" data-reveal style="margin-bottom:var(--sp-6);transition-delay:15ms">
+        <div class="card-head">
+          <div><h2>Your profile</h2><div class="card-sub">Collected during onboarding \u2014 used to personalize LunaTrack</div></div>
+          <a href="onboarding.html?edit=1" class="btn btn-secondary" style="padding:0.55rem 1.1rem;font-size:var(--fs-xs)">Edit Profile</a>
+        </div>
+
+        <div class="date-detail-panel" style="margin-top:0;padding-top:0;border-top:none">
+          <div class="dd-row"><span>Age</span><span class="v" id="opAge">Not set</span></div>
+          <div class="dd-row"><span>Date of birth</span><span class="v" id="opDob">Not set</span></div>
+          <div class="dd-row"><span>Typical water intake</span><span class="v" id="opWater">Not set</span></div>
+          <div class="dd-row"><span>Activity level</span><span class="v" id="opActivity">Not set</span></div>
+          <div class="dd-row"><span>Cramp / pain level</span><span class="v" id="opCramp">Not set</span></div>
+          <div class="dd-row"><span>Energy during period</span><span class="v" id="opEnergy">Not set</span></div>
+        </div>
+
+        <div id="opFavoriteFoodsRow" class="form-field" style="margin-top:var(--sp-5);margin-bottom:0">
+          <span class="field-label">Favorite foods</span>
+          <div class="pill-group" id="opFavoriteFoods"></div>
+        </div>
+        <div id="opFavoriteFruitsRow" class="form-field" style="margin-top:var(--sp-5);margin-bottom:0">
+          <span class="field-label">Favorite fruits</span>
+          <div class="pill-group" id="opFavoriteFruits"></div>
+        </div>
+        <div id="opSymptomsRow" class="form-field" style="margin-top:var(--sp-5);margin-bottom:0">
+          <span class="field-label">Common symptoms</span>
+          <div class="pill-group" id="opSymptoms"></div>
+        </div>
+        <div id="opWellnessRow" class="form-field" style="margin-top:var(--sp-5);margin-bottom:0">
+          <span class="field-label">Wellness focus</span>
+          <div class="pill-group" id="opWellness"></div>
+        </div>
+        <p id="opEmptyNote" style="margin-top:var(--sp-5);font-size:var(--fs-xs);color:var(--c-ink-faint)" hidden>
+          You haven\u2019t finished your onboarding profile yet \u2014 use Edit Profile above to add a few details.
+        </p>
+      </div>
+
       <!-- Cycle setup -->
       <div class="app-card" data-reveal style="margin-bottom:var(--sp-6);transition-delay:30ms">
         <div class="card-head"><h2>Cycle setup</h2></div>
@@ -238,6 +275,39 @@
       });
     }
 
+    function initOnboardingSummary() {
+      const u = LunaApp.data.user;
+      const l = u.lifestyle || {};
+      const c = u.cycleExperience || {};
+
+      const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val || 'Not set'; };
+      setText('opAge', u.age != null ? String(u.age) : null);
+      setText('opDob', u.dateOfBirth ? new Date(u.dateOfBirth + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : null);
+      setText('opWater', l.waterIntake);
+      setText('opActivity', l.activityLevel);
+      setText('opCramp', c.crampLevel);
+      setText('opEnergy', c.energyLevel);
+
+      const renderChips = (rowId, wrapId, values) => {
+        const row = document.getElementById(rowId);
+        const wrap = document.getElementById(wrapId);
+        if (!row || !wrap) return;
+        if (!values || !values.length) { row.hidden = true; return; }
+        row.hidden = false;
+        wrap.innerHTML = values.map((v) => '<span class="pill is-selected">' + v + '</span>').join('');
+      };
+      renderChips('opFavoriteFoodsRow', 'opFavoriteFoods', l.favoriteFoods);
+      renderChips('opFavoriteFruitsRow', 'opFavoriteFruits', l.favoriteFruits);
+      renderChips('opSymptomsRow', 'opSymptoms', c.symptoms);
+      renderChips('opWellnessRow', 'opWellness', u.wellnessFocus);
+
+      const hasAnything = u.age != null || u.dateOfBirth || (l.favoriteFoods || []).length
+        || (l.favoriteFruits || []).length || (c.symptoms || []).length || (u.wellnessFocus || []).length
+        || l.waterIntake || l.activityLevel || c.crampLevel || c.energyLevel;
+      const emptyNote = document.getElementById('opEmptyNote');
+      if (emptyNote) emptyNote.hidden = Boolean(hasAnything);
+    }
+
     function initExport() {
       document.getElementById('exportDataBtn').addEventListener('click', () => {
         const payload = {
@@ -312,6 +382,7 @@
       initTheme();
       initToggles();
       initProfile();
+      initOnboardingSummary();
       initExport();
       initDelete();
       initCycleSetupSection();
