@@ -233,6 +233,55 @@
     return parts.length ? parts.join(' \u00b7 ') : 'Logged for today.';
   }
 
+  /* ---- Wellness snapshot — water intake (today), pain (today), activity level (profile) ---- */
+  const WATER_PCT = { 'Less than 4 cups': 25, '4\u20136 cups': 55, '6\u20138 cups': 80, '8+ cups': 100 };
+  const PAIN_LEVEL = { None: 0, Mild: 1, Moderate: 2, Severe: 3 };
+  const ACTIVITY_PCT = { Sedentary: 20, 'Lightly active': 45, 'Moderately active': 70, 'Very active': 95 };
+
+  function renderWellnessSnapshot(log) {
+    const cupFill = document.getElementById('wsCupFill');
+    if (!cupFill) return; // card not on this page
+    const waterValue = document.getElementById('wsWaterValue');
+    const painDots = document.querySelectorAll('#wsPainDots .ws-dot');
+    const painValue = document.getElementById('wsPainValue');
+    const activityFill = document.getElementById('wsActivityFill');
+    const activityValue = document.getElementById('wsActivityValue');
+
+    if (log && log.water_intake) {
+      waterValue.textContent = log.water_intake;
+      requestAnimationFrame(function () { cupFill.style.height = (WATER_PCT[log.water_intake] || 0) + '%'; });
+    } else {
+      cupFill.style.height = '0%';
+      waterValue.textContent = 'Log today\u2019s check-in';
+    }
+
+    if (log && log.cramp_level) {
+      painValue.textContent = log.cramp_level;
+      const lvl = PAIN_LEVEL[log.cramp_level] || 0;
+      painDots.forEach(function (dot) {
+        const d = Number(dot.dataset.level);
+        setTimeout(function () { dot.classList.toggle('is-filled', d <= lvl); }, d * 90);
+      });
+    } else {
+      painDots.forEach(function (dot) { dot.classList.remove('is-filled'); });
+      painValue.textContent = 'Log today\u2019s check-in';
+    }
+
+    const activity = LunaApp.data.user.lifestyle && LunaApp.data.user.lifestyle.activityLevel;
+    if (activity) {
+      activityValue.textContent = activity;
+      requestAnimationFrame(function () { activityFill.style.width = (ACTIVITY_PCT[activity] || 0) + '%'; });
+    } else {
+      activityFill.style.width = '0%';
+      activityValue.textContent = 'Set in your profile';
+    }
+  }
+
+  async function initWellnessSnapshot(preloadedLog) {
+    const log = preloadedLog !== undefined ? preloadedLog : await LunaApp.loadTodayLog();
+    renderWellnessSnapshot(log);
+  }
+
   /* ---- Today's check-in ---- */
   async function initCheckIn() {
     const moodRow = document.getElementById('moodRow');
@@ -329,6 +378,7 @@
       todayLog = result.log;
       LunaApp.showToast('Check-in saved');
       showDoneView(todayLog);
+      renderWellnessSnapshot(todayLog);
     });
   }
 
@@ -521,6 +571,7 @@
     renderActivity();
     renderNotes();
     initCheckIn();
+    initWellnessSnapshot();
     initMiniCalendar();
     initInsightsPreview();
     initQuickActionModals();
