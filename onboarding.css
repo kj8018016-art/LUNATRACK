@@ -7,19 +7,15 @@
 
 body.onboard-body {
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--sp-5);
+  padding: var(--sp-8) var(--sp-5);
   position: relative;
-  overflow-x: hidden;
   background:
     radial-gradient(circle at 12% 8%, rgba(255, 77, 125, 0.10), transparent 55%),
     radial-gradient(circle at 88% 94%, rgba(140, 122, 230, 0.14), transparent 50%),
     var(--c-bg);
 }
 
-.onboard-shell { width: 100%; max-width: 640px; position: relative; z-index: 1; }
+.onboard-shell { width: 100%; max-width: 640px; margin: 0 auto; position: relative; z-index: 1; }
 
 .onboard-card {
   background: var(--c-surface);
@@ -134,6 +130,7 @@ body.onboard-body {
    RESPONSIVE
    ------------------------------------------------------------------------- */
 @media (max-width: 640px) {
+  body.onboard-body { padding: var(--sp-6) var(--sp-4); }
   .onboard-card { padding: var(--sp-6) var(--sp-5); }
   .op-label { display: none; }
   .op-step { width: 40px; }

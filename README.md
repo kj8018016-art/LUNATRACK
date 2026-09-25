@@ -110,6 +110,16 @@ like to read or customize the prompt.
   reopens the same wizard (`onboarding.html?edit=1`) pre-filled.
   **Requires re-running `supabase/schema.sql`** (section 11) so the new
   `profiles` columns exist — it's still safe to re-run in full.
+- **Daily Check-In & mood support**: the dashboard's "Today's check-in" card
+  now captures mood, energy, pain/cramps, symptoms, water intake, cravings,
+  and an optional note in ~30 seconds of tapping, saved to the existing
+  `daily_logs` row for today (same table Log Today uses, same
+  one-row-per-user-per-day constraint — never creates duplicates). Once
+  saved, the card collapses to "Today's check-in is complete 💗" with an
+  Edit option. A Low/Difficult mood shows a gentle, clearly-non-medical
+  "Cheer Me Up" card with randomized self-care suggestions.
+  **Also requires re-running `supabase/schema.sql`** (section 12) for the
+  three new `daily_logs` columns.
 
 ## Known limitations / what to verify yourself
 

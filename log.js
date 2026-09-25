@@ -71,6 +71,10 @@
         energy: getSelectedValue(energyGroup, 'button'),
         sleep: getSelectedValue(sleepGroup, 'button'),
         notes: notesField ? notesField.value.trim() : '',
+        // Not managed on this page — carry over whatever the Daily Check-In already saved.
+        crampLevel: existing ? existing.cramp_level : null,
+        waterIntake: existing ? existing.water_intake : null,
+        cravings: existing ? existing.cravings : [],
       };
       saveBtn.disabled = true;
       saveBtn.textContent = 'Saving\u2026';

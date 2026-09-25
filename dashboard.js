@@ -177,41 +177,158 @@
     if (btn) btn.classList.add('is-selected');
   }
 
+  /* ---- Mood support suggestions ---- */
+  const CHEER_SUGGESTIONS = [
+    { emoji: '\ud83d\udeb6\u200d\u2640\ufe0f', text: 'Take a short walk' },
+    { emoji: '\ud83d\udca7', text: 'Drink some water' },
+    { emoji: '\ud83c\udfb5', text: 'Listen to calming music' },
+    { emoji: '\ud83c\udf2c\ufe0f', text: 'Try a short breathing exercise' },
+    { emoji: '\ud83d\udecf\ufe0f', text: 'Rest for a few minutes' },
+    { emoji: '\ud83d\udcdd', text: 'Write down how you\u2019re feeling' },
+    { emoji: '\ud83c\udf6a', text: 'Have a snack' },
+    { emoji: '\ud83d\udc9c', text: 'Talk to someone you trust' },
+  ];
+
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+
+  function isLowMood(mood) { return mood === 'Low' || mood === 'Difficult'; }
+
+  /** Shows/hides + resets the gentle mood-support card based on today's mood. Never framed as medical/psychological advice. */
+  function showMoodSupport(mood) {
+    const card = document.getElementById('moodSupportCard');
+    if (!card) return;
+    if (!isLowMood(mood)) { card.hidden = true; return; }
+
+    card.hidden = false;
+    const cheerBtn = document.getElementById('cheerMeUpBtn');
+    const list = document.getElementById('cheerList');
+    const disclaimer = document.getElementById('cheerDisclaimer');
+    list.hidden = true; list.innerHTML = '';
+    disclaimer.hidden = true;
+    cheerBtn.hidden = false;
+    cheerBtn.onclick = function () {
+      const shuffled = shuffle(CHEER_SUGGESTIONS);
+      list.innerHTML = shuffled.map(function (s, i) {
+        return '<li style="animation-delay:' + (i * 60) + 'ms"><span class="cheer-emoji">' + s.emoji + '</span><span>' + s.text + '</span></li>';
+      }).join('');
+      list.hidden = false;
+      disclaimer.hidden = false;
+      cheerBtn.hidden = true;
+    };
+  }
+
+  function checkinSummaryText(log) {
+    const moodMap = { Great: '\ud83d\ude0a Great', Good: '\ud83d\ude42 Good', Okay: '\ud83d\ude10 Okay', Low: '\ud83d\ude14 Low', Difficult: '\ud83d\ude23 Difficult' };
+    const parts = [];
+    if (log.mood) parts.push(moodMap[log.mood] || log.mood);
+    if (log.energy) parts.push(log.energy + ' energy');
+    if (log.cramp_level && log.cramp_level !== 'None') parts.push(log.cramp_level.toLowerCase() + ' pain');
+    return parts.length ? parts.join(' \u00b7 ') : 'Logged for today.';
+  }
+
   /* ---- Today's check-in ---- */
   async function initCheckIn() {
     const moodRow = document.getElementById('moodRow');
     const energySeg = document.getElementById('energySeg');
+    const painPills = document.getElementById('painPills');
     const symptomPills = document.getElementById('symptomPills');
+    const waterPills = document.getElementById('waterPills');
+    const cravingPills = document.getElementById('cravingPills');
+    const notesInput = document.getElementById('checkinNotes');
     const saveBtn = document.getElementById('saveCheckinBtn');
+    const formView = document.getElementById('checkinFormView');
+    const doneView = document.getElementById('checkinDoneView');
+    const editBtn = document.getElementById('editCheckinBtn');
     if (!saveBtn) return;
 
     wireSingleSelect(moodRow, '.mood-btn');
     wireSingleSelect(energySeg, 'button');
+    wireSingleSelect(painPills, '.pill');
     wireMultiSelect(symptomPills, '.pill');
+    wireSingleSelect(waterPills, '.pill');
+    wireMultiSelect(cravingPills, '.pill');
 
-    const todayLog = await LunaApp.loadTodayLog();
-    if (todayLog) {
-      applySelection(moodRow, '.mood-btn', todayLog.mood);
-      applySelection(energySeg, 'button', todayLog.energy);
-      (todayLog.symptoms || []).forEach(function (s) { applySelection(symptomPills, '.pill', s); });
-      saveBtn.textContent = 'Update Check-in';
+    // "None" craving is exclusive with every other craving option, and vice versa
+    if (cravingPills) {
+      cravingPills.querySelectorAll('.pill').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          if (btn.dataset.value === 'None') {
+            if (btn.classList.contains('is-selected')) {
+              cravingPills.querySelectorAll('.pill').forEach(function (b) { if (b !== btn) b.classList.remove('is-selected'); });
+            }
+          } else if (btn.classList.contains('is-selected')) {
+            const noneBtn = cravingPills.querySelector('.pill[data-value="None"]');
+            if (noneBtn) noneBtn.classList.remove('is-selected');
+          }
+        });
+      });
     }
+
+    let todayLog = await LunaApp.loadTodayLog();
+
+    function fillForm(log) {
+      applySelection(moodRow, '.mood-btn', log.mood);
+      applySelection(energySeg, 'button', log.energy);
+      applySelection(painPills, '.pill', log.cramp_level);
+      (log.symptoms || []).forEach(function (s) { applySelection(symptomPills, '.pill', s); });
+      applySelection(waterPills, '.pill', log.water_intake);
+      (log.cravings || []).forEach(function (s) { applySelection(cravingPills, '.pill', s); });
+      if (notesInput) notesInput.value = log.notes || '';
+    }
+
+    // "Checked in today" means the quick check-in fields specifically were set —
+    // a period-only log from the Log Today page shouldn't count as a check-in.
+    function isCheckedIn(log) { return Boolean(log && (log.mood || log.energy || log.cramp_level)); }
+
+    function showDoneView(log) {
+      doneView.hidden = false;
+      formView.hidden = true;
+      document.getElementById('checkinDoneSummary').textContent = checkinSummaryText(log);
+      showMoodSupport(log.mood);
+    }
+
+    function showFormView(log) {
+      doneView.hidden = true;
+      formView.hidden = false;
+      if (log) fillForm(log);
+      showMoodSupport(log ? log.mood : null);
+    }
+
+    if (isCheckedIn(todayLog)) {
+      fillForm(todayLog); // so Edit opens pre-filled
+      showDoneView(todayLog);
+    } else {
+      showFormView(todayLog);
+    }
+
+    if (editBtn) editBtn.addEventListener('click', function () { showFormView(todayLog); });
 
     saveBtn.addEventListener('click', async function () {
       const entry = {
         mood: getSelectedValue(moodRow, '.mood-btn'),
         energy: getSelectedValue(energySeg, 'button'),
+        crampLevel: getSelectedValue(painPills, '.pill'),
         symptoms: getSelectedValues(symptomPills, '.pill'),
+        waterIntake: getSelectedValue(waterPills, '.pill'),
+        cravings: getSelectedValues(cravingPills, '.pill'),
+        notes: notesInput ? notesInput.value.trim() : (todayLog ? todayLog.notes : null),
         period: todayLog ? todayLog.period_flow : null,
         sleep: todayLog ? todayLog.sleep : null,
-        notes: todayLog ? todayLog.notes : null,
       };
       saveBtn.disabled = true;
       const result = await LunaApp.saveDailyLog(entry);
       saveBtn.disabled = false;
       if (result.error) { LunaApp.showToast('Could not save check-in'); return; }
-      saveBtn.textContent = 'Update Check-in';
+      todayLog = result.log;
       LunaApp.showToast('Check-in saved');
+      showDoneView(todayLog);
     });
   }
 

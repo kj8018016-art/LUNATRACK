@@ -134,42 +134,104 @@
             </button>
           </div>
 
-          <div class="app-card" data-reveal>
+          <div class="app-card" data-reveal id="checkinCard">
             <div class="card-head"><h2>Today's check-in</h2></div>
-            <p style="font-size:var(--fs-sm);color:var(--c-ink-soft);margin-bottom:var(--sp-5)">How are you feeling today?</p>
 
-            <div class="checkin-group">
-              <span class="field-label">Mood</span>
-              <div class="mood-row" id="moodRow">
-                <button type="button" class="mood-btn" data-value="Great"><span class="emoji">😊</span><span>Great</span></button>
-                <button type="button" class="mood-btn" data-value="Good"><span class="emoji">🙂</span><span>Good</span></button>
-                <button type="button" class="mood-btn" data-value="Okay"><span class="emoji">😐</span><span>Okay</span></button>
-                <button type="button" class="mood-btn" data-value="Low"><span class="emoji">😕</span><span>Low</span></button>
-                <button type="button" class="mood-btn" data-value="Difficult"><span class="emoji">😣</span><span>Difficult</span></button>
+            <div id="checkinDoneView" hidden>
+              <div class="checkin-done">
+                <div class="checkin-done-icon">\ud83d\udc97</div>
+                <p class="checkin-done-msg">Today's check-in is complete <span aria-hidden="true">\ud83d\udc97</span></p>
+                <p class="checkin-done-summary" id="checkinDoneSummary"></p>
+                <button type="button" class="btn btn-secondary btn-block" id="editCheckinBtn">Edit today's check-in</button>
               </div>
             </div>
 
-            <div class="checkin-group">
-              <span class="field-label">Energy</span>
-              <div class="segmented" id="energySeg">
-                <button type="button" data-value="Low">Low</button>
-                <button type="button" data-value="Normal">Normal</button>
-                <button type="button" data-value="High">High</button>
+            <div id="checkinFormView">
+              <p style="font-size:var(--fs-sm);color:var(--c-ink-soft);margin-bottom:var(--sp-5)">How are you feeling today?</p>
+
+              <div class="checkin-group">
+                <span class="field-label">Mood</span>
+                <div class="mood-row" id="moodRow">
+                  <button type="button" class="mood-btn" data-value="Great"><span class="emoji">\ud83d\ude0a</span><span>Great</span></button>
+                  <button type="button" class="mood-btn" data-value="Good"><span class="emoji">\ud83d\ude42</span><span>Good</span></button>
+                  <button type="button" class="mood-btn" data-value="Okay"><span class="emoji">\ud83d\ude10</span><span>Okay</span></button>
+                  <button type="button" class="mood-btn" data-value="Low"><span class="emoji">\ud83d\ude14</span><span>Low</span></button>
+                  <button type="button" class="mood-btn" data-value="Difficult"><span class="emoji">\ud83d\ude23</span><span>Difficult</span></button>
+                </div>
               </div>
+
+              <div class="checkin-group">
+                <span class="field-label">Energy</span>
+                <div class="segmented" id="energySeg">
+                  <button type="button" data-value="Low">\ud83d\ude34 Low</button>
+                  <button type="button" data-value="Normal">\ud83d\ude42 Normal</button>
+                  <button type="button" data-value="High">\u26a1 High</button>
+                </div>
+              </div>
+
+              <div class="checkin-group">
+                <span class="field-label">Pain / Cramps</span>
+                <div class="pill-group" id="painPills">
+                  <button type="button" class="pill" data-value="None">None</button>
+                  <button type="button" class="pill" data-value="Mild">Mild</button>
+                  <button type="button" class="pill" data-value="Moderate">Moderate</button>
+                  <button type="button" class="pill" data-value="Severe">Severe</button>
+                </div>
+              </div>
+
+              <div class="checkin-group">
+                <span class="field-label">Symptoms</span>
+                <div class="pill-group" id="symptomPills">
+                  <button type="button" class="pill" data-value="Cramps">Cramps</button>
+                  <button type="button" class="pill" data-value="Headache">Headache</button>
+                  <button type="button" class="pill" data-value="Bloating">Bloating</button>
+                  <button type="button" class="pill" data-value="Backache">Backache</button>
+                  <button type="button" class="pill" data-value="Breast tenderness">Breast tenderness</button>
+                  <button type="button" class="pill" data-value="Fatigue">Fatigue</button>
+                  <button type="button" class="pill" data-value="Nausea">Nausea</button>
+                  <button type="button" class="pill" data-value="Other">Other</button>
+                </div>
+              </div>
+
+              <div class="checkin-group">
+                <span class="field-label">Water intake</span>
+                <div class="pill-group" id="waterPills">
+                  <button type="button" class="pill" data-value="Less than 4 cups">Less than 4 cups</button>
+                  <button type="button" class="pill" data-value="4&ndash;6 cups">4&ndash;6 cups</button>
+                  <button type="button" class="pill" data-value="6&ndash;8 cups">6&ndash;8 cups</button>
+                  <button type="button" class="pill" data-value="8+ cups">8+ cups</button>
+                </div>
+              </div>
+
+              <div class="checkin-group">
+                <span class="field-label">Cravings</span>
+                <div class="pill-group" id="cravingPills">
+                  <button type="button" class="pill" data-value="Sweet">Sweet</button>
+                  <button type="button" class="pill" data-value="Salty">Salty</button>
+                  <button type="button" class="pill" data-value="Chocolate">Chocolate</button>
+                  <button type="button" class="pill" data-value="Fast food">Fast food</button>
+                  <button type="button" class="pill" data-value="Fruits">Fruits</button>
+                  <button type="button" class="pill" data-value="None">None</button>
+                </div>
+              </div>
+
+              <div class="checkin-group">
+                <span class="field-label">Notes <span class="field-optional">(optional)</span></span>
+                <input type="text" id="checkinNotes" placeholder="Anything you'd like to note?" maxlength="200">
+              </div>
+
+              <button class="btn btn-primary btn-block" id="saveCheckinBtn">Save Check-in</button>
             </div>
 
-            <div class="checkin-group">
-              <span class="field-label">Symptoms</span>
-              <div class="pill-group" id="symptomPills">
-                <button type="button" class="pill" data-value="Cramps">Cramps</button>
-                <button type="button" class="pill" data-value="Headache">Headache</button>
-                <button type="button" class="pill" data-value="Bloating">Bloating</button>
-                <button type="button" class="pill" data-value="Backache">Backache</button>
-                <button type="button" class="pill" data-value="Fatigue">Fatigue</button>
+            <div id="moodSupportCard" class="mood-support-card" hidden>
+              <div class="mood-support-head">
+                <span class="mood-support-emoji">\ud83d\udc97</span>
+                <p>Looks like today is a little tough <span aria-hidden="true">\ud83d\udc97</span></p>
               </div>
+              <button type="button" class="btn btn-secondary" id="cheerMeUpBtn">Cheer Me Up</button>
+              <ul class="cheer-list" id="cheerList" hidden></ul>
+              <p class="cheer-disclaimer" id="cheerDisclaimer" hidden>Just gentle ideas \u2014 not medical or psychological advice.</p>
             </div>
-
-            <button class="btn btn-primary btn-block" id="saveCheckinBtn">Save Check-in</button>
           </div>
         </div>
       </div>

@@ -250,3 +250,34 @@
 }
 .note-delete-btn:hover { background: var(--c-surface); color: var(--c-burgundy); }
 .note-delete-btn svg { width: 14px; height: 14px; }
+
+/* -------------------------------------------------------------------------
+   DAILY CHECK-IN — completed state + mood support
+   ------------------------------------------------------------------------- */
+.field-optional { font-weight: 400; font-size: 11px; color: var(--c-ink-faint); text-transform: none; letter-spacing: 0; }
+
+.checkin-done { text-align: center; padding: var(--sp-4) 0 var(--sp-2); animation: fade-in-up 420ms var(--ease-out) both; }
+.checkin-done-icon { font-size: 32px; line-height: 1; margin-bottom: var(--sp-3); }
+.checkin-done-msg { font-family: var(--font-display); font-size: var(--fs-lg); color: var(--c-ink); margin-bottom: var(--sp-3); }
+.checkin-done-summary { font-size: var(--fs-sm); color: var(--c-ink-soft); margin-bottom: var(--sp-6); }
+
+.mood-support-card {
+  margin-top: var(--sp-6); padding-top: var(--sp-6); border-top: 1px solid var(--c-border);
+  text-align: center; animation: fade-in-up 420ms var(--ease-out) both;
+}
+.mood-support-head { margin-bottom: var(--sp-5); }
+.mood-support-emoji { font-size: 26px; display: block; margin-bottom: var(--sp-2); }
+.mood-support-head p { font-size: var(--fs-md); color: var(--c-ink); font-weight: 600; }
+.cheer-list { list-style: none; margin-top: var(--sp-5); text-align: left; display: flex; flex-direction: column; gap: var(--sp-3); }
+.cheer-list li {
+  display: flex; align-items: center; gap: var(--sp-3);
+  background: var(--c-surface-sunken); border-radius: var(--r-md);
+  padding: var(--sp-3) var(--sp-4); font-size: var(--fs-sm); color: var(--c-ink-soft);
+  animation: fade-in-up 360ms var(--ease-out) both;
+}
+.cheer-list li .cheer-emoji { font-size: 17px; flex-shrink: 0; }
+.cheer-disclaimer { margin-top: var(--sp-4); font-size: 11px; color: var(--c-ink-faint); }
+
+@media (prefers-reduced-motion: reduce) {
+  .checkin-done, .mood-support-card, .cheer-list li { animation: none !important; }
+}

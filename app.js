@@ -302,6 +302,9 @@ const LunaApp = (() => {
         energy: entry.energy || null,
         sleep: entry.sleep || null,
         notes: entry.notes || null,
+        cramp_level: entry.crampLevel || null,
+        water_intake: entry.waterIntake || null,
+        cravings: entry.cravings || [],
       }, { onConflict: 'user_id,log_date' })
       .select().single();
     if (error) return { error: error.message };
