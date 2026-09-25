@@ -6,11 +6,12 @@
 .dash-grid {
   display: grid;
   grid-template-columns: 1.1fr 1fr;
-  align-items: start;
   gap: var(--sp-6);
   margin-bottom: var(--sp-6);
 }
 .dash-grid-even { grid-template-columns: 1fr 1fr; }
+.dash-grid-top { align-items: start; }
+.dash-col-left { display: flex; flex-direction: column; gap: var(--sp-6); }
 
 /* -------------------------------------------------------------------------
    CYCLE CARD
@@ -256,6 +257,8 @@
    DAILY CHECK-IN — completed state + mood support
    ------------------------------------------------------------------------- */
 .field-optional { font-weight: 400; font-size: 11px; color: var(--c-ink-faint); text-transform: none; letter-spacing: 0; }
+
+.empty-state-compact { text-align: center; padding: var(--sp-5) var(--sp-4); color: var(--c-ink-faint); font-size: var(--fs-sm); }
 
 .checkin-done { text-align: center; padding: var(--sp-4) 0 var(--sp-2); animation: fade-in-up 420ms var(--ease-out) both; }
 .checkin-done-icon { font-size: 32px; line-height: 1; margin-bottom: var(--sp-3); }

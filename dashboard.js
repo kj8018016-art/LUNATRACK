@@ -105,7 +105,7 @@
     if (!list) return;
     const items = LunaApp.data.recentActivity;
     if (!items.length) {
-      list.innerHTML = '<div class="empty-state">No activity yet \u2014 log your first entry to see it here.</div>';
+      list.innerHTML = '<div class="empty-state-compact">No activity yet \u2014 log your first entry to see it here.</div>';
       return;
     }
     list.innerHTML = items.map(function (item, i) {
@@ -119,7 +119,7 @@
     if (!list) return;
     const notes = LunaApp.data.notes;
     if (!notes.length) {
-      list.innerHTML = '<div class="empty-state">No notes yet. Use "Add note" or the quick action above.</div>';
+      list.innerHTML = '<div class="empty-state-compact">No notes yet. Use "Add note" or the quick action above.</div>';
       return;
     }
     list.innerHTML = notes.map(function (n) {
@@ -460,7 +460,7 @@
     const ins = LunaApp.data.insights;
 
     if (!ins.hasEnoughData) {
-      grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1">Not enough data yet. Keep logging your period to see cycle insights here.</div>';
+      grid.innerHTML = '<div class="empty-state-compact" style="grid-column:1/-1">Not enough data yet. Keep logging your period to see cycle insights here.</div>';
       const chart = document.getElementById('dashChartWrap');
       if (chart) chart.style.display = 'none';
       return;

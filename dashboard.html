@@ -59,8 +59,9 @@
         <p id="mobileGreetingSub">Here's a look at your cycle today.</p>
       </div>
 
-      <!-- Cycle card + Quick actions / Check-in -->
-      <div class="dash-grid">
+      <!-- Cycle card + Quick actions / Wellness snapshot / Check-in -->
+      <div class="dash-grid dash-grid-top">
+        <div class="dash-col-left">
         <div class="cycle-card" data-reveal>
           <div class="cycle-card-top">
             <span class="eyebrow">Current cycle</span>
@@ -115,7 +116,6 @@
           </div>
         </div>
 
-        <div>
           <div class="quick-actions">
             <button class="quick-action-card" data-open-modal="modalLogPeriod">
               <span class="qa-icon"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3s7 7.5 7 12a7 7 0 0 1-14 0c0-4.5 7-12 7-12Z"/></svg></span>
@@ -133,6 +133,34 @@
               <p>Jot something down</p>
             </button>
           </div>
+
+          <div class="app-card wellness-snapshot" data-reveal>
+            <div class="card-head">
+              <div><h2>Wellness Snapshot</h2><div class="card-sub">Today at a glance</div></div>
+            </div>
+            <div class="wellness-grid">
+              <div class="wellness-widget">
+                <div class="ws-cup" id="wsCup"><div class="ws-cup-fill" id="wsCupFill"></div></div>
+                <div class="ws-label">Water intake</div>
+                <div class="ws-value" id="wsWaterValue">—</div>
+              </div>
+              <div class="wellness-widget">
+                <div class="ws-dots" id="wsPainDots">
+                  <span class="ws-dot" data-level="1"></span>
+                  <span class="ws-dot" data-level="2"></span>
+                  <span class="ws-dot" data-level="3"></span>
+                </div>
+                <div class="ws-label">Pain / cramps</div>
+                <div class="ws-value" id="wsPainValue">—</div>
+              </div>
+              <div class="wellness-widget">
+                <div class="ws-bar"><div class="ws-bar-fill" id="wsActivityFill"></div></div>
+                <div class="ws-label">Activity level</div>
+                <div class="ws-value" id="wsActivityValue">—</div>
+              </div>
+            </div>
+          </div>
+        </div>
 
           <div class="app-card" data-reveal id="checkinCard">
             <div class="card-head"><h2>Today's check-in</h2></div>
@@ -233,35 +261,6 @@
               <p class="cheer-disclaimer" id="cheerDisclaimer" hidden>Just gentle ideas — not medical or psychological advice.</p>
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- Wellness snapshot -->
-      <div class="app-card wellness-snapshot" data-reveal style="margin-bottom:var(--sp-6)">
-        <div class="card-head">
-          <div><h2>Wellness Snapshot</h2><div class="card-sub">Today at a glance</div></div>
-        </div>
-        <div class="wellness-grid">
-          <div class="wellness-widget">
-            <div class="ws-cup" id="wsCup"><div class="ws-cup-fill" id="wsCupFill"></div></div>
-            <div class="ws-label">Water intake</div>
-            <div class="ws-value" id="wsWaterValue">—</div>
-          </div>
-          <div class="wellness-widget">
-            <div class="ws-dots" id="wsPainDots">
-              <span class="ws-dot" data-level="1"></span>
-              <span class="ws-dot" data-level="2"></span>
-              <span class="ws-dot" data-level="3"></span>
-            </div>
-            <div class="ws-label">Pain / cramps</div>
-            <div class="ws-value" id="wsPainValue">—</div>
-          </div>
-          <div class="wellness-widget">
-            <div class="ws-bar"><div class="ws-bar-fill" id="wsActivityFill"></div></div>
-            <div class="ws-label">Activity level</div>
-            <div class="ws-value" id="wsActivityValue">—</div>
-          </div>
-        </div>
       </div>
 
       <!-- Calendar preview + Recent activity -->
