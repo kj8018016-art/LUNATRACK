@@ -282,6 +282,70 @@
     renderWellnessSnapshot(log);
   }
 
+  /* ---- Today's Wellness Tip ---- */
+  function renderWellnessTip() {
+    const emojiEl = document.getElementById('dashTipEmoji');
+    if (!emojiEl || typeof LunaWellnessTips === 'undefined') return;
+    const tip = LunaWellnessTips.getTodaysTip();
+    emojiEl.textContent = tip.emoji;
+    document.getElementById('dashTipText').textContent = tip.text;
+  }
+
+  /* ---- Sugar tracking (dashboard card + modal) ---- */
+  const SUGAR_EMOJI = { Low: '\ud83c\udf6c', Moderate: '\ud83c\udf6d', High: '\ud83c\udf6b' };
+
+  function renderSugarCard(log) {
+    const valueEl = document.getElementById('sugarTodayValue');
+    if (!valueEl) return;
+    if (log && log.sugar_intake) {
+      valueEl.textContent = (SUGAR_EMOJI[log.sugar_intake] || '') + ' ' + log.sugar_intake;
+    } else {
+      valueEl.textContent = 'Not logged';
+    }
+    applySelection(document.getElementById('sugarPills'), '.pill', log ? log.sugar_intake : null);
+    const noteInput = document.getElementById('sugarNoteInput');
+    if (noteInput) noteInput.value = (log && log.sugar_note) || '';
+  }
+
+  async function initSugarCard() {
+    const sugarPills = document.getElementById('sugarPills');
+    const noteInput = document.getElementById('sugarNoteInput');
+    const saveBtn = document.getElementById('saveSugarBtn');
+    if (!saveBtn) return;
+
+    wireSingleSelect(sugarPills, '.pill');
+
+    let todayLog = await LunaApp.loadTodayLog();
+    renderSugarCard(todayLog);
+
+    saveBtn.addEventListener('click', async function () {
+      const level = getSelectedValue(sugarPills, '.pill');
+      if (!level) { LunaApp.showToast('Pick a sugar level'); return; }
+      const entry = {
+        sugarIntake: level,
+        sugarNote: noteInput ? noteInput.value.trim() : '',
+        // Not managed on this modal — carry over whatever's already saved today.
+        period: todayLog ? todayLog.period_flow : null,
+        symptoms: todayLog ? todayLog.symptoms : [],
+        mood: todayLog ? todayLog.mood : null,
+        energy: todayLog ? todayLog.energy : null,
+        sleep: todayLog ? todayLog.sleep : null,
+        notes: todayLog ? todayLog.notes : null,
+        crampLevel: todayLog ? todayLog.cramp_level : null,
+        waterIntake: todayLog ? todayLog.water_intake : null,
+        cravings: todayLog ? todayLog.cravings : [],
+      };
+      saveBtn.disabled = true;
+      const result = await LunaApp.saveDailyLog(entry);
+      saveBtn.disabled = false;
+      if (result.error) { LunaApp.showToast('Could not save sugar log'); return; }
+      todayLog = result.log;
+      renderSugarCard(todayLog);
+      LunaApp.closeModal(saveBtn);
+      LunaApp.showToast('Sugar log saved');
+    });
+  }
+
   /* ---- Today's check-in ---- */
   async function initCheckIn() {
     const moodRow = document.getElementById('moodRow');
@@ -370,6 +434,9 @@
         notes: notesInput ? notesInput.value.trim() : (todayLog ? todayLog.notes : null),
         period: todayLog ? todayLog.period_flow : null,
         sleep: todayLog ? todayLog.sleep : null,
+        // Not managed on this card — carry over whatever the Sugar modal already saved.
+        sugarIntake: todayLog ? todayLog.sugar_intake : null,
+        sugarNote: todayLog ? todayLog.sugar_note : null,
       };
       saveBtn.disabled = true;
       const result = await LunaApp.saveDailyLog(entry);
@@ -379,6 +446,7 @@
       LunaApp.showToast('Check-in saved');
       showDoneView(todayLog);
       renderWellnessSnapshot(todayLog);
+      renderSugarCard(todayLog);
     });
   }
 
@@ -572,6 +640,8 @@
     renderNotes();
     initCheckIn();
     initWellnessSnapshot();
+    renderWellnessTip();
+    initSugarCard();
     initMiniCalendar();
     initInsightsPreview();
     initQuickActionModals();

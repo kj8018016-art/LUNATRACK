@@ -1,0 +1,25 @@
+/* ==========================================================================
+   LunaTrack — sugar-history.css
+   Styles specific to sugar-history.html. Reuses .history-list/.history-row
+   and .empty-state from app.css for the log list — only new layout here.
+   ========================================================================== */
+
+.sugar-phase-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-4); margin-bottom: var(--sp-6); }
+.sugar-phase-card {
+  background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-lg);
+  padding: var(--sp-5); text-align: center;
+}
+.sugar-phase-label { font-size: var(--fs-xs); color: var(--c-ink-faint); font-weight: 600; margin-bottom: var(--sp-2); }
+.sugar-phase-value { font-family: var(--font-display); font-size: var(--fs-md); color: var(--c-plum); }
+.sugar-phase-count { font-size: 11px; color: var(--c-ink-faint); margin-top: 2px; }
+
+.sugar-insight-card {
+  display: flex; align-items: center; gap: var(--sp-4);
+  background: linear-gradient(135deg, var(--c-rose-soft), var(--c-lavender-soft));
+}
+.sugar-insight-emoji { font-size: 24px; flex-shrink: 0; }
+.sugar-insight-card p { font-size: var(--fs-sm); color: var(--c-ink); font-weight: 500; }
+
+@media (max-width: 640px) {
+  .sugar-phase-grid { grid-template-columns: 1fr; }
+}

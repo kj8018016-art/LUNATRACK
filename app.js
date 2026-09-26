@@ -38,6 +38,7 @@ const LunaApp = (() => {
     chat: '<path d="M4 4h16v12H8l-4 4V4Z"/><path d="M8 9h8M8 12.5h5"/>',
     search: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
     plug: '<path d="M9 3v4M15 3v4M6 7h12l-1 5a5 5 0 0 1-10 0Z"/><path d="M12 16v5"/>',
+    leaf: '<path d="M20 4c-8 0-16 3-16 13 0 1.5 1 2.5 2.5 2.5C17 19.5 20 12 20 4Z"/><path d="M6.5 17.5C9 13 12 9.5 17 6.5"/>',
   };
 
   function icon(name, size) {
@@ -67,12 +68,13 @@ const LunaApp = (() => {
       hasEnoughData: false,
       avgCycleLength: null, avgPeriodLength: null, shortestCycle: null, longestCycle: null,
       variationDays: null, cyclesLogged: 0, recentCycleLengths: [], recentPeriodLengths: [],
-      symptomFrequency: [],
+      symptomFrequency: [], lowWaterFrequent: false, crampsFrequent: false, poorSleepFrequent: false,
     },
     recentActivity: [],
     notifications: [],
     notes: [],
     loggedDays: {},
+    recentLogs: [],
   };
 
   const PREFIX = 'lunatrack:';
@@ -192,6 +194,27 @@ const LunaApp = (() => {
     return computeCycleInfo(raw).dates;
   }
 
+  /**
+   * Classifies any date as 'during' (a period day), 'after' (closer to the
+   * last period than the next one) or 'before' (closer to the next period)
+   * — using the same cycleLength/periodLength math as the rest of the app,
+   * via modular arithmetic so it works for any date, not just the
+   * previous/current/next windows getCycleDates() tracks. Returns null when
+   * there's no cycle setup yet (nothing to compute a phase from).
+   */
+  function phaseBucketForDate(date) {
+    const cd = getCycleDates();
+    if (!cd) return null;
+    const cycleLength = data.currentCycle.cycleLength || 28;
+    const periodLength = data.currentCycle.periodLength || 5;
+    const diffDays = Math.floor((date - cd.cycleStart) / MS_DAY);
+    const cycleDay = ((diffDays % cycleLength) + cycleLength) % cycleLength; // normalize to 0..cycleLength-1
+    if (cycleDay < periodLength) return 'during';
+    const nonPeriodDays = Math.max(1, cycleLength - periodLength);
+    const midpoint = periodLength + nonPeriodDays / 2;
+    return cycleDay < midpoint ? 'after' : 'before';
+  }
+
   async function saveCycleSetup(setup) {
     const user = await LunaAuth.getUser();
     if (!user) return { error: 'Not signed in.' };
@@ -264,6 +287,14 @@ const LunaApp = (() => {
       .sort(function (a, b) { return b[1] - a[1]; })
       .map(function (e) { return { name: e[0], count: e[1] }; });
 
+    // Personalization signals for Wellness Tips — based on the most recent
+    // week of logs (logsRows is already sorted newest-first), never a
+    // one-off day, so a single rough day doesn't trigger a "pattern" tip.
+    const recentWeek = (logsRows || []).slice(0, 7);
+    const lowWaterCount = recentWeek.filter(function (l) { return l.water_intake === 'Less than 4 cups'; }).length;
+    const crampsCount = recentWeek.filter(function (l) { return (l.cramp_level && l.cramp_level !== 'None') || (l.symptoms || []).indexOf('Cramps') !== -1; }).length;
+    const poorSleepCount = recentWeek.filter(function (l) { return l.sleep === 'Poor'; }).length;
+
     return {
       hasEnoughData: lengths.length >= 2,
       avgCycleLength: lengths.length ? Math.round(lengths.reduce(function (a, b) { return a + b; }, 0) / lengths.length) : null,
@@ -275,6 +306,9 @@ const LunaApp = (() => {
       recentCycleLengths: lengths.slice(0, 6).reverse(),
       recentPeriodLengths: periodLengths.slice(0, 6).reverse(),
       symptomFrequency: symptomFrequency,
+      lowWaterFrequent: recentWeek.length >= 3 && lowWaterCount >= 3,
+      crampsFrequent: recentWeek.length >= 3 && crampsCount >= 3,
+      poorSleepFrequent: recentWeek.length >= 3 && poorSleepCount >= 3,
     };
   }
 
@@ -305,6 +339,8 @@ const LunaApp = (() => {
         cramp_level: entry.crampLevel || null,
         water_intake: entry.waterIntake || null,
         cravings: entry.cravings || [],
+        sugar_intake: entry.sugarIntake || null,
+        sugar_note: entry.sugarNote || null,
       }, { onConflict: 'user_id,log_date' })
       .select().single();
     if (error) return { error: error.message };
@@ -492,6 +528,7 @@ const LunaApp = (() => {
 
     data.cycles = deriveCyclesFromLogs(logsRows);
     data.insights = computeInsightsFromCycles(data.cycles, logsRows);
+    data.recentLogs = logsRows || [];
 
     data.notes = notesRows || [];
 
@@ -581,6 +618,7 @@ const LunaApp = (() => {
     { id: 'calendar', label: 'Calendar', href: 'calendar.html', iconName: 'calendar' },
     { id: 'log', label: 'Log Today', href: 'log.html', iconName: 'edit' },
     { id: 'insights', label: 'Insights', href: 'insights.html', iconName: 'chart' },
+    { id: 'wellness', label: 'Wellness', href: 'wellness.html', iconName: 'leaf' },
     { id: 'history', label: 'History', href: 'history.html', iconName: 'clock' },
     { id: 'learn', label: 'Learn', href: 'learn.html', iconName: 'book' },
     { id: 'ai-chat', label: 'AI Chat', href: 'ai-chat.html', iconName: 'chat', badge: 'Beta' },
@@ -939,7 +977,7 @@ const LunaApp = (() => {
     setTheme: setTheme, initTheme: initTheme, applyTheme: applyTheme,
     dateKey: dateKey, buildMonthGrid: buildMonthGrid, dateFromISO: dateFromISO, isoDate: isoDate, fmtShort: fmtShort,
     TODAY: TODAY, initScrollReveal: initScrollReveal, cyclePhase: cyclePhase,
-    getCycleDates: getCycleDates, openCycleSetupModal: openCycleSetupModal, saveCycleSetup: saveCycleSetup,
+    getCycleDates: getCycleDates, openCycleSetupModal: openCycleSetupModal, saveCycleSetup: saveCycleSetup, phaseBucketForDate: phaseBucketForDate,
     loadTodayLog: loadTodayLog, saveDailyLog: saveDailyLog, loadNotes: loadNotes, addNote: addNote, deleteNote: deleteNote,
     loadNotifications: loadNotifications, markAllNotificationsRead: markAllNotificationsRead, addNotification: addNotification,
     saveProfileName: saveProfileName, uploadAvatar: uploadAvatar, avatarHTML: avatarHTML, loadUserData: loadUserData,

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+(function(){
+  try {
+    var raw = localStorage.getItem('lunatrack:theme');
+    var pref = raw ? JSON.parse(raw) : 'light';
+    var resolved = pref === 'system' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : pref;
+    if (resolved === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  } catch (e) {}
+})();
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sugar Tracking — LunaTrack</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="animations.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="app-responsive.css">
+<link rel="stylesheet" href="sugar-history.css">
+</head>
+<body class="app-body" data-page="sugar-history" data-title="Sugar Tracking">
+
+<div id="authGuardOverlay" hidden>
+  <div class="luna-loader"></div>
+  <p>Loading your account&hellip;</p>
+  <a href="login.html" id="authGuardEscape" hidden style="font-size:13px;color:var(--c-plum);font-weight:600;">Taking longer than expected? Go to login &rarr;</a>
+</div>
+
+<a href="#appMain" class="skip-link">Skip to content</a>
+
+<div id="mobileTopbarRoot"></div>
+<div id="drawerRoot"></div>
+
+<div class="app-shell">
+  <div id="sidebarRoot"></div>
+
+  <main class="app-main" id="appMain">
+    <div class="app-main-inner" style="max-width:800px">
+
+      <div class="app-topbar">
+        <div class="topbar-title">
+          <h1>Sugar Tracking</h1>
+          <p>See your own patterns across your cycle — not a medical reading.</p>
+        </div>
+        <div class="topbar-actions" id="topbarActions"></div>
+      </div>
+
+      <p class="empty-state" id="shNoCycleNote" style="padding:var(--sp-4) var(--sp-5);text-align:left;background:var(--c-surface-sunken);border-radius:var(--r-md);margin-bottom:var(--sp-6)" hidden>
+        Set up your cycle on the dashboard to see these logs broken down by cycle phase.
+      </p>
+
+      <div class="sugar-phase-grid">
+        <div class="sugar-phase-card" data-reveal>
+          <div class="sugar-phase-label">Before period</div>
+          <div class="sugar-phase-value" id="shBeforeValue">—</div>
+          <div class="sugar-phase-count" id="shBeforeCount">0 logs</div>
+        </div>
+        <div class="sugar-phase-card" data-reveal style="transition-delay:60ms">
+          <div class="sugar-phase-label">During period</div>
+          <div class="sugar-phase-value" id="shDuringValue">—</div>
+          <div class="sugar-phase-count" id="shDuringCount">0 logs</div>
+        </div>
+        <div class="sugar-phase-card" data-reveal style="transition-delay:120ms">
+          <div class="sugar-phase-label">After period</div>
+          <div class="sugar-phase-value" id="shAfterValue">—</div>
+          <div class="sugar-phase-count" id="shAfterCount">0 logs</div>
+        </div>
+      </div>
+
+      <div class="app-card sugar-insight-card" id="shInsight" data-reveal hidden>
+        <span class="sugar-insight-emoji">💝</span>
+        <p></p>
+      </div>
+
+      <div class="app-card" data-reveal style="margin-top:var(--sp-6)">
+        <div class="card-head"><h2>Recent logs</h2></div>
+        <div class="history-list" id="shHistoryList"></div>
+      </div>
+
+      <p style="margin-top:var(--sp-6);font-size:var(--fs-xs);color:var(--c-ink-faint);max-width:640px">
+        This is meant to help you notice your own patterns — it isn't a medical claim about sugar causing or preventing any menstrual symptom.
+      </p>
+
+    </div>
+  </main>
+</div>
+
+<div id="bottomNavRoot"></div>
+<div id="modalRoot"></div>
+<div class="toast-stack" id="toastStack" aria-live="polite"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-client.js"></script>
+<script src="auth.js"></script>
+<script src="app.js"></script>
+<script src="sugar-history.js"></script>
+</body>
+</html>

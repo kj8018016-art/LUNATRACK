@@ -75,6 +75,8 @@
         crampLevel: existing ? existing.cramp_level : null,
         waterIntake: existing ? existing.water_intake : null,
         cravings: existing ? existing.cravings : [],
+        sugarIntake: existing ? existing.sugar_intake : null,
+        sugarNote: existing ? existing.sugar_note : null,
       };
       saveBtn.disabled = true;
       saveBtn.textContent = 'Saving\u2026';

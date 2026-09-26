@@ -1,0 +1,44 @@
+/* ==========================================================================
+   LunaTrack — wellness.css
+   Styles specific to wellness.html. Reuses .help-categories/.chat-suggestion-chip
+   from app.css for category filtering — only new component styles live here.
+   ========================================================================== */
+
+.personalized-tips-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--c-plum); margin-bottom: var(--sp-3); }
+.personalized-tips { display: flex; flex-direction: column; gap: var(--sp-4); margin-bottom: var(--sp-7); }
+.personalized-tip-card {
+  display: flex; gap: var(--sp-4); align-items: flex-start;
+  background: linear-gradient(135deg, var(--c-rose-soft), var(--c-lavender-soft));
+  border-radius: var(--r-lg); padding: var(--sp-5);
+  animation: fade-in-up 420ms var(--ease-out) both;
+}
+.personalized-tip-card .emoji { font-size: 24px; line-height: 1; flex-shrink: 0; }
+.personalized-tip-card h3 { font-family: var(--font-display); font-size: var(--fs-sm); color: var(--c-ink); margin-bottom: 2px; }
+.personalized-tip-card p { font-size: var(--fs-sm); color: var(--c-ink-soft); }
+
+.sugar-link-card {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--sp-5);
+  margin-bottom: var(--sp-7); flex-wrap: wrap;
+}
+.sugar-link-card h2 { font-family: var(--font-display); font-size: var(--fs-md); color: var(--c-ink); margin-bottom: 2px; }
+.sugar-link-card p { font-size: var(--fs-sm); color: var(--c-ink-soft); }
+
+.tip-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp-5); }
+.tip-card {
+  background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-lg);
+  padding: var(--sp-5); display: flex; gap: var(--sp-4); align-items: flex-start;
+  transition: transform var(--dur-fast) var(--ease-soft), box-shadow var(--dur-fast) var(--ease-soft), border-color var(--dur-fast) var(--ease-soft);
+}
+.tip-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-soft); border-color: var(--c-border-strong); }
+.tip-card-emoji { font-size: 22px; line-height: 1; flex-shrink: 0; }
+.tip-card-cat { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; color: var(--c-burgundy); margin-bottom: 4px; }
+.tip-card p { font-size: var(--fs-sm); color: var(--c-ink-soft); }
+
+@media (max-width: 768px) {
+  .tip-grid { grid-template-columns: 1fr; }
+  .sugar-link-card { flex-direction: column; align-items: flex-start; }
+  .sugar-link-card .btn { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .personalized-tip-card { animation: none !important; }
+}

@@ -301,6 +301,29 @@
         </div>
       </div>
 
+      <!-- Wellness: today's tip + sugar tracking -->
+      <div class="app-card wellness-dash-card" data-reveal style="margin-top:var(--sp-6)">
+        <div class="wellness-tip-row">
+          <span class="wellness-tip-emoji" id="dashTipEmoji">🌿</span>
+          <div class="wellness-tip-text">
+            <div class="wellness-tip-eyebrow">Today's Wellness Tip</div>
+            <p id="dashTipText">Remember to drink water regularly throughout the day.</p>
+          </div>
+          <a href="wellness.html" class="btn-ghost" style="font-size:var(--fs-xs);flex-shrink:0">More tips</a>
+        </div>
+
+        <div class="sugar-dash-row">
+          <div>
+            <div class="wellness-tip-eyebrow">Sugar today</div>
+            <div class="sugar-dash-value" id="sugarTodayValue">Not logged</div>
+          </div>
+          <div class="sugar-dash-actions">
+            <button type="button" class="btn btn-secondary" data-open-modal="modalLogSugar">Log Sugar</button>
+            <a href="sugar-history.html" class="btn btn-secondary">View History</a>
+          </div>
+        </div>
+      </div>
+
       <!-- Notes -->
       <div class="app-card" data-reveal style="margin-top:var(--sp-6)">
         <div class="card-head">
@@ -379,6 +402,25 @@
       </div>
     </div>
   </div>
+
+  <div class="modal-backdrop" id="modalLogSugar">
+    <div class="modal-box">
+      <div class="modal-head"><h3>Log Sugar Intake</h3><button class="modal-close" data-close-modal aria-label="Close">✕</button></div>
+      <div class="pill-group" id="sugarPills">
+        <button type="button" class="pill" data-value="Low">🍬 Low</button>
+        <button type="button" class="pill" data-value="Moderate">🍭 Moderate</button>
+        <button type="button" class="pill" data-value="High">🍫 High</button>
+      </div>
+      <div class="form-field" style="margin-top:var(--sp-5);margin-bottom:0">
+        <label for="sugarNoteInput">Note <span class="field-optional">(optional)</span></label>
+        <input type="text" id="sugarNoteInput" placeholder="What did you have?" maxlength="120">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" data-close-modal>Cancel</button>
+        <button class="btn btn-primary" id="saveSugarBtn">Save</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="toast-stack" id="toastStack" aria-live="polite"></div>
@@ -387,6 +429,7 @@
 <script src="supabase-client.js"></script>
 <script src="auth.js"></script>
 <script src="app.js"></script>
+<script src="wellness-tips-content.js"></script>
 <script src="dashboard.js"></script>
 </body>
 </html>

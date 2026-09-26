@@ -343,3 +343,24 @@
 @media (prefers-reduced-motion: reduce) {
   .ws-cup-fill::before { animation: none !important; }
 }
+
+/* -------------------------------------------------------------------------
+   DASHBOARD WELLNESS CARD — today's tip + sugar tracking
+   ------------------------------------------------------------------------- */
+.wellness-tip-row {
+  display: flex; align-items: flex-start; gap: var(--sp-4);
+  padding-bottom: var(--sp-5); border-bottom: 1px solid var(--c-border); margin-bottom: var(--sp-5);
+}
+.wellness-tip-emoji { font-size: 26px; line-height: 1; flex-shrink: 0; }
+.wellness-tip-text { flex: 1; min-width: 0; }
+.wellness-tip-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; color: var(--c-plum); margin-bottom: 4px; }
+.wellness-tip-text p { font-size: var(--fs-sm); color: var(--c-ink-soft); }
+
+.sugar-dash-row { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); flex-wrap: wrap; }
+.sugar-dash-value { font-family: var(--font-display); font-size: var(--fs-md); color: var(--c-ink); margin-top: 2px; }
+.sugar-dash-actions { display: flex; gap: var(--sp-3); flex-wrap: wrap; }
+
+@media (max-width: 480px) {
+  .wellness-tip-row { flex-wrap: wrap; }
+  .sugar-dash-actions .btn { flex: 1 1 auto; }
+}

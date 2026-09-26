@@ -16,16 +16,20 @@ index.html                  landing page
 login.html                  sign in / create account
 onboarding.html              4-step post-signup profile wizard
 dashboard.html, calendar.html, log.html, insights.html,
-history.html, settings.html, help.html, learn.html, ai-chat.html
+history.html, settings.html, help.html, learn.html, ai-chat.html,
+wellness.html, sugar-history.html
 style.css, animations.css, responsive.css     landing page styles
 app.css, dashboard.css, app-responsive.css    app shell + page styles
 onboarding.css               onboarding wizard styles
+wellness.css, sugar-history.css               wellness tips + sugar tracking styles
 main.js, components.js, animations.js         landing page scripts
 app.js                      shell + real Supabase data layer
 auth.js, supabase-client.js auth + client config
 onboarding.js                onboarding wizard logic
 dashboard.js, calendar.js, log.js, insights.js,
 ai-chat.js, help-content.js, learn-content.js  page-specific logic
+wellness-tips-content.js     shared tip data + personalization logic
+wellness.js, sugar-history.js page-specific logic
 netlify.toml
 supabase/schema.sql         database schema + Row Level Security
 ```
@@ -120,6 +124,19 @@ like to read or customize the prompt.
   "Cheer Me Up" card with randomized self-care suggestions.
   **Also requires re-running `supabase/schema.sql`** (section 12) for the
   three new `daily_logs` columns.
+- **Wellness Tips & Sugar Tracking**: a new `wellness.html` page groups short,
+  general tips into 7 categories (Hydration, Nutrition, Period Care, Cramps
+  & Comfort, Sleep, Activity, Cycle Education), plus a "For you" section
+  that surfaces pattern-based tips (e.g. a hydration reminder) only when
+  the last week of check-ins actually shows that pattern — never a claim
+  that anything will fix or prevent a symptom. Sugar intake (Low/Moderate/
+  High + an optional note) is logged from the dashboard into the same
+  `daily_logs` row Daily Check-In uses (no new table), and `sugar-history.html`
+  groups recent logs into Before/During/After period using the existing
+  cycle-length math, with a pattern sentence shown only once there's enough
+  data and a real gap between phases.
+  **Also requires re-running `supabase/schema.sql`** (section 13) for the
+  two new `daily_logs` columns (`sugar_intake`, `sugar_note`).
 
 ## Known limitations / what to verify yourself
 
