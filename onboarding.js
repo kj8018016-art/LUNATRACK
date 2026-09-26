@@ -83,8 +83,9 @@
         + '<h2 class="ob-title">' + (isEditMode ? 'Edit your profile' : 'Welcome to LunaTrack') + '</h2>'
         + '<p class="ob-sub">' + (isEditMode ? "Update your basics any time \u2014 it only takes a minute." : "Let's get to know you a little \u2014 this helps us personalize your experience.") + '</p>'
         + '<div class="ob-avatar-row">'
-        + '<div class="ob-avatar-wrap" id="obAvatarWrap">' + LunaApp.avatarHTML(96) + '</div>'
+        + '<div class="ob-avatar-wrap" id="obAvatarWrap">' + LunaApp.avatarHTML(96)
         + '<button type="button" class="ob-avatar-edit" id="obAvatarBtn" aria-label="Change profile picture">' + LunaApp.icon('edit', 13) + '</button>'
+        + '</div>'
         + '<input type="file" id="obAvatarInput" accept="image/*" hidden>'
         + '</div>'
         + '<div class="form-field"><label for="obName">What should we call you?</label><input type="text" id="obName" placeholder="Your name" value="' + esc(state.name) + '"></div>'

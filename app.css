@@ -135,6 +135,7 @@ body.app-body { background: var(--c-bg); transition: background var(--dur-mid) v
   margin-left: auto;
 }
 .sidebar-link.is-active .nav-soon-badge { color: var(--c-plum); background: var(--c-on-plum); }
+.sidebar-foot {
   display: flex;
   flex-direction: column;
   gap: var(--sp-1);
@@ -273,40 +274,38 @@ body.app-body { background: var(--c-bg); transition: background var(--dur-mid) v
    ------------------------------------------------------------------------- */
 .bottom-nav {
   display: none;
-  position: fixed; bottom: 0; left: 0; right: 0;
+  position: fixed;
+  left: 50%;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
   z-index: 60;
-  background: var(--c-surface);
-  border-top: 1px solid var(--c-border);
-  padding: var(--sp-2) var(--sp-3);
-  padding-bottom: max(var(--sp-2), env(safe-area-inset-bottom));
 }
-.bottom-nav-list { display: flex; justify-content: space-between; align-items: flex-end; }
+.bottom-nav-list {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(30, 18, 30, 0.55);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--r-full);
+  padding: 6px;
+  box-shadow: 0 16px 36px -10px rgba(20, 6, 16, 0.5);
+}
 .bottom-nav-link {
-  display: flex; flex-direction: column; align-items: center; gap: 3px;
-  padding: var(--sp-2) var(--sp-2);
-  color: var(--c-ink-faint);
-  flex: 1;
+  display: flex; align-items: center; justify-content: center;
+  width: 46px; height: 46px;
+  border-radius: var(--r-full);
+  color: rgba(255, 255, 255, 0.6);
+  transition: background var(--dur-fast) var(--ease-soft), color var(--dur-fast) var(--ease-soft), transform var(--dur-fast) var(--ease-soft);
 }
-.bottom-nav-link svg { width: 21px; height: 21px; }
-.bottom-nav-link span { font-size: 10.5px; font-weight: 600; }
-.bottom-nav-link.is-active { color: var(--c-plum); }
-
-.bottom-nav-link.is-log {
-  flex: 0 0 auto;
-  margin-top: -28px;
-  padding: 0;
-}
-.bottom-nav-link.is-log .bottom-nav-log-btn {
-  width: 56px; height: 56px;
-  border-radius: 50%;
-  display: grid; place-items: center;
-  background: linear-gradient(155deg, var(--c-plum), var(--c-burgundy));
+.bottom-nav-link svg { width: 20px; height: 20px; }
+.bottom-nav-link:active { transform: scale(0.9); }
+.bottom-nav-link.is-active {
   color: #fff;
-  box-shadow: 0 10px 22px -6px rgba(166, 18, 87, 0.55), 0 0 0 6px var(--c-surface);
-  transition: transform var(--dur-fast) var(--ease-soft), box-shadow var(--dur-fast) var(--ease-soft);
+  background: linear-gradient(135deg, var(--c-plum), var(--c-plum-deep));
+  box-shadow: 0 6px 16px -4px rgba(214, 46, 94, 0.6);
 }
-.bottom-nav-link.is-log:active .bottom-nav-log-btn { transform: scale(0.9); }
-.bottom-nav-link.is-log.is-active .bottom-nav-log-btn { background: linear-gradient(155deg, var(--c-plum-deep), var(--c-plum)); }
 
 /* -------------------------------------------------------------------------
    7. CARDS
