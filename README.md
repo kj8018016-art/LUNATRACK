@@ -17,7 +17,8 @@ login.html                  sign in / create account
 onboarding.html              4-step post-signup profile wizard
 dashboard.html, calendar.html, log.html, insights.html,
 history.html, settings.html, help.html, learn.html, ai-chat.html,
-wellness.html, sugar-history.html
+wellness.html, sugar-history.html, notifications.html,
+notification-settings.html
 style.css, animations.css, responsive.css     landing page styles
 app.css, dashboard.css, app-responsive.css    app shell + page styles
 onboarding.css               onboarding wizard styles
@@ -30,6 +31,8 @@ dashboard.js, calendar.js, log.js, insights.js,
 ai-chat.js, help-content.js, learn-content.js  page-specific logic
 wellness-tips-content.js     shared tip data + personalization logic
 wellness.js, sugar-history.js page-specific logic
+notification-engine.js       decides which reminders to create (dashboard only)
+notifications.js, notification-settings.js  page-specific logic
 netlify.toml
 supabase/schema.sql         database schema + Row Level Security
 ```
@@ -137,6 +140,22 @@ like to read or customize the prompt.
   data and a real gap between phases.
   **Also requires re-running `supabase/schema.sql`** (section 13) for the
   two new `daily_logs` columns (`sugar_intake`, `sugar_note`).
+- **Notification center & preferences**: the bell in the nav (desktop dropdown,
+  mobile → `notifications.html`) now shows typed, icon-coded notifications
+  (Daily Check-in, Period/Ovulation Reminder, Hydration, Mood Check, Wellness
+  Tip, Missed Check-in) with a real unread-count badge. `notification-settings.html`
+  lets users turn each type on/off and set a reminder time for the three
+  time-based ones — replacing the two generic toggles that used to live in
+  Settings. `notification-engine.js` (loaded on the dashboard) is the
+  "intelligence": once per page load it checks real state — has today's
+  check-in happened? is the period/ovulation window close? — before creating
+  anything, and a `dedupe_key` unique index makes it impossible to create the
+  same reminder twice in a day even if this runs many times. This is
+  client-side and only fires while the app is open — true background delivery
+  (works when the app is closed) is intentionally deferred to a later step.
+  **Also requires re-running `supabase/schema.sql`** (section 14) for the
+  new `notification_preferences` table and the `notifications`/`preferences`
+  column additions.
 
 ## Known limitations / what to verify yourself
 

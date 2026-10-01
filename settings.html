@@ -138,14 +138,9 @@
           </div>
         </div>
 
-        <div class="switch-row">
-          <div><div class="lbl">Notifications</div><div class="sub">Get notified about weekly summaries and updates</div></div>
-          <label class="switch"><input type="checkbox" id="notifToggleSetting"><span class="switch-track"></span></label>
-        </div>
-
-        <div class="switch-row">
-          <div><div class="lbl">Period reminders</div><div class="sub">A gentle nudge as your estimated period approaches</div></div>
-          <label class="switch"><input type="checkbox" id="reminderToggleSetting"><span class="switch-track"></span></label>
+        <div class="switch-row" style="border-bottom:none">
+          <div><div class="lbl">Notifications</div><div class="sub">Choose exactly which reminders you get, and when</div></div>
+          <a href="notification-settings.html" class="btn btn-secondary" style="padding:0.55rem 1.1rem;font-size:var(--fs-xs)">Manage</a>
         </div>
       </div>
 
@@ -219,30 +214,6 @@
           setTheme(btn.dataset.value);
           showToast('Appearance updated');
         });
-      });
-    }
-
-    async function initToggles() {
-      const notif = document.getElementById('notifToggleSetting');
-      const reminder = document.getElementById('reminderToggleSetting');
-      const user = await LunaAuth.getUser();
-      if (!user) return;
-
-      const { data: prefs } = await LunaSupabase.client
-        .from('preferences').select('notifications_enabled, reminders_enabled').eq('user_id', user.id).maybeSingle();
-
-      notif.checked = prefs ? prefs.notifications_enabled : true;
-      reminder.checked = prefs ? prefs.reminders_enabled : true;
-
-      notif.addEventListener('change', async () => {
-        const { error } = await LunaSupabase.client.from('preferences')
-          .upsert({ user_id: user.id, notifications_enabled: notif.checked, updated_at: new Date().toISOString() });
-        showToast(error ? 'Could not save preference' : 'Preferences saved');
-      });
-      reminder.addEventListener('change', async () => {
-        const { error } = await LunaSupabase.client.from('preferences')
-          .upsert({ user_id: user.id, reminders_enabled: reminder.checked, updated_at: new Date().toISOString() });
-        showToast(error ? 'Could not save preference' : 'Preferences saved');
       });
     }
 
@@ -380,7 +351,6 @@
 
     function init() {
       initTheme();
-      initToggles();
       initProfile();
       initOnboardingSummary();
       initExport();

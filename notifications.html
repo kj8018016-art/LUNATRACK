@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+(function(){
+  try {
+    var raw = localStorage.getItem('lunatrack:theme');
+    var pref = raw ? JSON.parse(raw) : 'light';
+    var resolved = pref === 'system' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : pref;
+    if (resolved === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  } catch (e) {}
+})();
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notifications — LunaTrack</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="animations.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="app-responsive.css">
+</head>
+<body class="app-body" data-page="notifications" data-title="Notifications">
+
+<div id="authGuardOverlay" hidden>
+  <div class="luna-loader"></div>
+  <p>Loading your account&hellip;</p>
+  <a href="login.html" id="authGuardEscape" hidden style="font-size:13px;color:var(--c-plum);font-weight:600;">Taking longer than expected? Go to login &rarr;</a>
+</div>
+
+<a href="#appMain" class="skip-link">Skip to content</a>
+
+<div id="mobileTopbarRoot"></div>
+<div id="drawerRoot"></div>
+
+<div class="app-shell">
+  <div id="sidebarRoot"></div>
+
+  <main class="app-main" id="appMain">
+    <div class="app-main-inner" style="max-width:760px">
+
+      <div class="app-topbar">
+        <div class="topbar-title">
+          <h1>Notifications</h1>
+          <p>Everything LunaTrack has let you know about.</p>
+        </div>
+        <div class="topbar-actions" id="topbarActions"></div>
+      </div>
+
+      <div class="app-card" data-reveal style="padding:0;overflow:hidden">
+        <div class="notif-head" style="padding:var(--sp-5) var(--sp-6)">
+          <h3 style="font-size:var(--fs-md)">All notifications <span class="notif-count" id="nfCount" hidden></span></h3>
+          <button type="button" id="nfClearAll">Mark all as read</button>
+        </div>
+        <div class="notif-list" id="nfList" style="max-height:none"></div>
+      </div>
+
+      <p style="margin-top:var(--sp-5);font-size:var(--fs-xs);color:var(--c-ink-faint)">
+        Want fewer (or different) reminders? <a href="notification-settings.html" style="color:var(--c-plum);font-weight:600">Manage notification preferences</a>.
+      </p>
+
+    </div>
+  </main>
+</div>
+
+<div id="bottomNavRoot"></div>
+<div id="modalRoot"></div>
+<div class="toast-stack" id="toastStack" aria-live="polite"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-client.js"></script>
+<script src="auth.js"></script>
+<script src="app.js"></script>
+<script src="notifications.js"></script>
+</body>
+</html>

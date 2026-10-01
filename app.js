@@ -417,22 +417,82 @@ const LunaApp = (() => {
     return { error: error && error.message };
   }
 
-  async function loadNotifications() {
+  /* ---- Notifications --------------------------------------------------
+     `notifications` rows carry a `type` (daily_checkin, hydration, …) and
+     `title`; legacy rows created before that column existed have neither and
+     are shown as plain "Activity". Icons/tints/destinations come from the
+     type, so nothing visual needs to be stored in the database. */
+  const NOTIF_META = {
+    daily_checkin:      { emoji: '\ud83c\udf38', tint: 'rose',     label: 'Daily Check-in',   href: 'dashboard.html#checkinCard' },
+    missed_checkin:     { emoji: '\ud83c\udf19', tint: 'lavender', label: 'Check-in',         href: 'dashboard.html#checkinCard' },
+    mood_check:         { emoji: '\ud83d\udc97', tint: 'rose',     label: 'Mood Check',       href: 'dashboard.html#checkinCard' },
+    hydration:          { emoji: '\ud83d\udca7', tint: 'lavender', label: 'Hydration',        href: 'dashboard.html#checkinCard' },
+    period_reminder:    { emoji: '\ud83c\udf37', tint: 'rose',     label: 'Period Reminder',  href: 'calendar.html' },
+    ovulation_reminder: { emoji: '\ud83c\udf3c', tint: 'amber',    label: 'Ovulation Window', href: 'calendar.html' },
+    wellness_tips:      { emoji: '\ud83c\udf3f', tint: 'mint',     label: 'Wellness Tip',     href: 'wellness.html' },
+    activity:           { emoji: '\ud83d\udcdd', tint: 'sunken',   label: 'Activity',         href: '' },
+  };
+
+  function escapeHTML(str) {
+    return String(str == null ? '' : str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  /** "Today, 8:00 PM" / "Yesterday, 6:00 PM" / "Sep 26, 3:15 PM" — always in the user's local timezone. */
+  function formatNotifTime(iso) {
+    const d = new Date(iso);
+    const time = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    const startOfDay = function (x) { return new Date(x.getFullYear(), x.getMonth(), x.getDate()); };
+    const diffDays = Math.round((startOfDay(new Date()) - startOfDay(d)) / MS_DAY);
+    if (diffDays === 0) return 'Today, ' + time;
+    if (diffDays === 1) return 'Yesterday, ' + time;
+    return fmtShort(d) + ', ' + time;
+  }
+
+  function mapNotificationRow(n) {
+    const type = NOTIF_META[n.type] ? n.type : 'activity';
+    const meta = NOTIF_META[type];
+    return {
+      id: n.id, type: type,
+      title: n.title || meta.label,
+      text: n.body,
+      time: relativeTime(n.created_at),
+      when: formatNotifTime(n.created_at),
+      createdAt: n.created_at,
+      read: n.read,
+      emoji: meta.emoji, tint: meta.tint, href: meta.href,
+    };
+  }
+
+  async function loadNotifications(limit) {
     const user = await LunaAuth.getUser();
     if (!user) return [];
     const { data: rows, error } = await LunaSupabase.client
-      .from('notifications').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(30);
+      .from('notifications').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(limit || 30);
     if (error) { console.warn('LunaTrack: failed to load notifications.', error.message); return []; }
-    return (rows || []).map(function (n) { return { id: n.id, text: n.body, time: relativeTime(n.created_at), read: n.read }; });
+    return (rows || []).map(mapNotificationRow);
   }
 
+  /** Re-reads notifications from the database and redraws the bell/panel (used after the notification engine creates new ones). */
+  async function refreshNotifications() {
+    data.notifications = await loadNotifications();
+    renderNotifPanel();
+  }
+
+  /** Activity confirmations ("Your log was saved") are things the user just did themselves, so they're created already-read and never inflate the unread badge. */
   function addNotification(body) {
     LunaAuth.getUser().then(function (user) {
       if (!user) return;
-      LunaSupabase.client.from('notifications').insert({ user_id: user.id, body: body }).then(function (res) {
+      LunaSupabase.client.from('notifications').insert({ user_id: user.id, body: body, read: true }).then(function (res) {
         if (res.error) console.warn('LunaTrack: failed to create notification.', res.error.message);
       });
     });
+  }
+
+  async function markNotificationRead(id) {
+    const user = await LunaAuth.getUser();
+    if (!user) return;
+    await LunaSupabase.client.from('notifications').update({ read: true }).eq('id', id).eq('user_id', user.id);
+    data.notifications.forEach(function (n) { if (String(n.id) === String(id)) n.read = true; });
   }
 
   async function markAllNotificationsRead() {
@@ -440,6 +500,17 @@ const LunaApp = (() => {
     if (!user) return;
     await LunaSupabase.client.from('notifications').update({ read: true }).eq('user_id', user.id).eq('read', false);
     data.notifications.forEach(function (n) { n.read = true; });
+  }
+
+  /** Shared markup for one notification row — used by the bell dropdown and the full Notifications page. */
+  function notifItemHTML(n) {
+    return '<button type="button" class="notif-item ' + (n.read ? 'is-read' : 'is-unread') + '" data-id="' + escapeHTML(n.id) + '" data-href="' + escapeHTML(n.href) + '">'
+      + '<span class="notif-icon tint-' + n.tint + '" aria-hidden="true">' + n.emoji + '</span>'
+      + '<span class="notif-body"><span class="notif-title">' + escapeHTML(n.title) + '</span>'
+      + '<span class="notif-msg">' + escapeHTML(n.text) + '</span>'
+      + '<time datetime="' + escapeHTML(n.createdAt) + '">' + escapeHTML(n.when) + '</time></span>'
+      + '<span class="dot" role="img" aria-label="' + (n.read ? 'Read' : 'Unread') + '"></span>'
+      + '</button>';
   }
 
   async function saveProfileName(name) {
@@ -532,7 +603,7 @@ const LunaApp = (() => {
 
     data.notes = notesRows || [];
 
-    data.notifications = (notifRows || []).map(function (n) { return { id: n.id, text: n.body, time: relativeTime(n.created_at), read: n.read }; });
+    data.notifications = (notifRows || []).map(mapNotificationRow);
 
     const activity = [];
     (logsRows || []).slice(0, 4).forEach(function (l) { activity.push({ when: fmtShort(dateFromISO(l.log_date)), text: 'Log saved' }); });
@@ -668,7 +739,7 @@ const LunaApp = (() => {
       + '<header class="mobile-topbar">'
       + '<button class="icon-btn" id="drawerToggle" aria-label="Open menu" aria-expanded="false" aria-controls="appDrawer" style="background:transparent;border-color:transparent;">' + icon('menu', 20) + '</button>'
       + '<a class="brand" href="dashboard.html">' + (pageTitle || 'LunaTrack') + '</a>'
-      + '<div class="dropdown-anchor"><button class="icon-btn" id="mobileNotifToggle" aria-label="Notifications" style="background:transparent;border-color:transparent;">' + icon('bell', 19) + '<span class="notif-dot" id="mobileNotifDot" hidden></span></button></div>'
+      + '<div class="dropdown-anchor"><button class="icon-btn" id="mobileNotifToggle" aria-label="Notifications" style="background:transparent;border-color:transparent;">' + icon('bell', 19) + '<span class="notif-badge" id="mobileNotifDot" hidden></span></button></div>'
       + '</header>';
   }
 
@@ -701,7 +772,7 @@ const LunaApp = (() => {
     const el = document.getElementById('topbarActions');
     if (!el) return;
     el.innerHTML = ''
-      + '<div class="dropdown-anchor"><button class="icon-btn" id="notifToggle" aria-label="Notifications" aria-haspopup="true">' + icon('bell', 18) + '<span class="notif-dot" id="notifDot" hidden></span></button><div class="notif-panel" id="notifPanel" role="menu"></div></div>'
+      + '<div class="dropdown-anchor"><button class="icon-btn" id="notifToggle" aria-label="Notifications" aria-haspopup="true">' + icon('bell', 18) + '<span class="notif-badge" id="notifDot" hidden></span></button><div class="notif-panel" id="notifPanel" role="menu"></div></div>'
       + '<a href="settings.html" title="' + data.user.name + '">' + avatarHTML(36) + '</a>';
   }
 
@@ -709,18 +780,24 @@ const LunaApp = (() => {
     const panel = document.getElementById('notifPanel');
     const unread = data.notifications.filter(function (n) { return !n.read; }).length;
 
-    [document.getElementById('notifDot'), document.getElementById('mobileNotifDot')].forEach(function (dot) {
-      if (dot) dot.hidden = unread === 0;
+    [document.getElementById('notifDot'), document.getElementById('mobileNotifDot')].forEach(function (badge) {
+      if (!badge) return;
+      badge.hidden = unread === 0;
+      badge.textContent = unread > 9 ? '9+' : String(unread);
+    });
+    [document.getElementById('notifToggle'), document.getElementById('mobileNotifToggle')].forEach(function (btn) {
+      if (btn) btn.setAttribute('aria-label', unread ? ('Notifications, ' + unread + ' unread') : 'Notifications');
     });
 
     if (!panel) return;
     const list = data.notifications.length
-      ? data.notifications.map(function (n) {
-          return '<div class="notif-item ' + (n.read ? 'is-read' : '') + '"><span class="dot"></span><div><p>' + n.text + '</p><time>' + n.time + '</time></div></div>';
-        }).join('')
-      : '<div class="notif-empty">You\'re all caught up.</div>';
+      ? data.notifications.slice(0, 8).map(notifItemHTML).join('')
+      : '<div class="notif-empty">\ud83c\udf38 You\'re all caught up.</div>';
 
-    panel.innerHTML = '<div class="notif-head"><h3>Notifications</h3><button id="notifClearAll">Mark all read</button></div><div class="notif-list">' + list + '</div>';
+    panel.innerHTML = '<div class="notif-head"><h3>Notifications' + (unread ? ' <span class="notif-count">' + unread + ' new</span>' : '') + '</h3>'
+      + '<button type="button" id="notifClearAll"' + (unread ? '' : ' disabled') + '>Mark all as read</button></div>'
+      + '<div class="notif-list">' + list + '</div>'
+      + '<div class="notif-foot"><a href="notifications.html">View all</a><a href="notification-settings.html">' + icon('settings', 14) + 'Preferences</a></div>';
 
     const clearBtn = document.getElementById('notifClearAll');
     if (clearBtn) {
@@ -739,22 +816,30 @@ const LunaApp = (() => {
     if (toggle && panel) {
       toggle.addEventListener('click', function (e) {
         e.stopPropagation();
-        const willOpen = !panel.classList.contains('is-open');
-        panel.classList.toggle('is-open', willOpen);
-        if (willOpen) setTimeout(async function () { await markAllNotificationsRead(); renderNotifPanel(); }, 1200);
+        panel.classList.toggle('is-open');
       });
       document.addEventListener('click', function (e) {
-        if (!panel.contains(e.target) && e.target !== toggle) panel.classList.remove('is-open');
+        if (!panel.contains(e.target) && !toggle.contains(e.target)) panel.classList.remove('is-open');
+      });
+      // Opening the panel no longer marks everything read — a notification is
+      // marked read when the user actually opens it (or via "Mark all as read").
+      panel.addEventListener('click', async function (e) {
+        const item = e.target.closest('.notif-item');
+        if (!item) return;
+        const href = item.getAttribute('data-href');
+        await markNotificationRead(item.getAttribute('data-id'));
+        renderNotifPanel();
+        if (href) {
+          panel.classList.remove('is-open');
+          window.location.href = href;
+        }
       });
     }
 
     const mobileToggle = document.getElementById('mobileNotifToggle');
     if (mobileToggle) {
-      mobileToggle.addEventListener('click', async function () {
-        const unread = data.notifications.filter(function (n) { return !n.read; }).length;
-        showToast(unread ? ('You have ' + unread + ' new notification' + (unread === 1 ? '' : 's')) : "You're all caught up");
-        await markAllNotificationsRead();
-        renderNotifPanel();
+      mobileToggle.addEventListener('click', function () {
+        if (document.body.dataset.page !== 'notifications') window.location.href = 'notifications.html';
       });
     }
   }
@@ -964,6 +1049,12 @@ const LunaApp = (() => {
     initOnboarding();
 
     document.dispatchEvent(new CustomEvent('lunatrack:data-ready'));
+
+    // Fire-and-forget: only runs on pages that include notification-engine.js.
+    // Never blocks rendering — the bell just updates itself if it creates anything.
+    if (typeof LunaNotificationEngine !== 'undefined') {
+      LunaNotificationEngine.run().catch(function (e) { console.warn('LunaTrack: notification engine failed.', e); });
+    }
   }
 
   if (document.readyState === 'loading') {
@@ -980,6 +1071,8 @@ const LunaApp = (() => {
     getCycleDates: getCycleDates, openCycleSetupModal: openCycleSetupModal, saveCycleSetup: saveCycleSetup, phaseBucketForDate: phaseBucketForDate,
     loadTodayLog: loadTodayLog, saveDailyLog: saveDailyLog, loadNotes: loadNotes, addNote: addNote, deleteNote: deleteNote,
     loadNotifications: loadNotifications, markAllNotificationsRead: markAllNotificationsRead, addNotification: addNotification,
+    markNotificationRead: markNotificationRead, refreshNotifications: refreshNotifications, notifItemHTML: notifItemHTML,
+    NOTIF_META: NOTIF_META, escapeHTML: escapeHTML, renderNotifPanel: renderNotifPanel,
     saveProfileName: saveProfileName, uploadAvatar: uploadAvatar, avatarHTML: avatarHTML, loadUserData: loadUserData,
   };
 })();

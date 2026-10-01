@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+(function(){
+  try {
+    var raw = localStorage.getItem('lunatrack:theme');
+    var pref = raw ? JSON.parse(raw) : 'light';
+    var resolved = pref === 'system' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : pref;
+    if (resolved === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  } catch (e) {}
+})();
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notification Preferences — LunaTrack</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="animations.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="app-responsive.css">
+</head>
+<body class="app-body" data-page="notification-settings" data-title="Notification Preferences">
+
+<div id="authGuardOverlay" hidden>
+  <div class="luna-loader"></div>
+  <p>Loading your account&hellip;</p>
+  <a href="login.html" id="authGuardEscape" hidden style="font-size:13px;color:var(--c-plum);font-weight:600;">Taking longer than expected? Go to login &rarr;</a>
+</div>
+
+<a href="#appMain" class="skip-link">Skip to content</a>
+
+<div id="mobileTopbarRoot"></div>
+<div id="drawerRoot"></div>
+
+<div class="app-shell">
+  <div id="sidebarRoot"></div>
+
+  <main class="app-main" id="appMain">
+    <div class="app-main-inner" style="max-width:760px">
+
+      <div class="app-topbar">
+        <div class="topbar-title">
+          <h1>Notification Preferences</h1>
+          <p>Choose exactly which reminders you get, and when.</p>
+        </div>
+        <div class="topbar-actions" id="topbarActions"></div>
+      </div>
+
+      <div class="app-card" data-reveal id="npCard">
+
+        <div class="switch-row" style="padding-top:0">
+          <div><div class="lbl">Daily Check-in</div><div class="sub">Remind me to complete my daily check-in.</div></div>
+          <label class="switch"><input type="checkbox" class="np-toggle" data-type="daily_checkin"><span class="switch-track"></span></label>
+        </div>
+        <div class="np-time-row" data-time-for="daily_checkin">
+          <span>Reminder time</span>
+          <input type="time" class="np-time" data-type="daily_checkin">
+        </div>
+
+        <div class="switch-row">
+          <div><div class="lbl">Period Reminder</div><div class="sub">Notify me when my period is approaching.</div></div>
+          <label class="switch"><input type="checkbox" class="np-toggle" data-type="period_reminder"><span class="switch-track"></span></label>
+        </div>
+
+        <div class="switch-row">
+          <div><div class="lbl">Ovulation Reminder</div><div class="sub">Notify me around my predicted ovulation window.</div></div>
+          <label class="switch"><input type="checkbox" class="np-toggle" data-type="ovulation_reminder"><span class="switch-track"></span></label>
+        </div>
+
+        <div class="switch-row">
+          <div><div class="lbl">Hydration</div><div class="sub">Remind me to drink water.</div></div>
+          <label class="switch"><input type="checkbox" class="np-toggle" data-type="hydration"><span class="switch-track"></span></label>
+        </div>
+        <div class="np-time-row" data-time-for="hydration">
+          <span>Reminder time</span>
+          <input type="time" class="np-time" data-type="hydration">
+        </div>
+
+        <div class="switch-row">
+          <div><div class="lbl">Mood Check</div><div class="sub">Ask me how I'm feeling.</div></div>
+          <label class="switch"><input type="checkbox" class="np-toggle" data-type="mood_check"><span class="switch-track"></span></label>
+        </div>
+        <div class="np-time-row" data-time-for="mood_check">
+          <span>Reminder time</span>
+          <input type="time" class="np-time" data-type="mood_check">
+        </div>
+
+        <div class="switch-row">
+          <div><div class="lbl">Wellness Tips</div><div class="sub">Send me occasional wellness tips.</div></div>
+          <label class="switch"><input type="checkbox" class="np-toggle" data-type="wellness_tips"><span class="switch-track"></span></label>
+        </div>
+
+        <div class="switch-row">
+          <div><div class="lbl">Missed Check-in</div><div class="sub">Remind me if I haven't logged today.</div></div>
+          <label class="switch"><input type="checkbox" class="np-toggle" data-type="missed_checkin"><span class="switch-track"></span></label>
+        </div>
+
+      </div>
+
+      <p style="margin-top:var(--sp-5);font-size:var(--fs-xs);color:var(--c-ink-faint)">
+        Times use your device's local timezone. Changes save automatically.
+      </p>
+
+    </div>
+  </main>
+</div>
+
+<div id="bottomNavRoot"></div>
+<div id="modalRoot"></div>
+<div class="toast-stack" id="toastStack" aria-live="polite"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-client.js"></script>
+<script src="auth.js"></script>
+<script src="app.js"></script>
+<script src="notification-settings.js"></script>
+</body>
+</html>
